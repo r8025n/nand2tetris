@@ -110,7 +110,7 @@ int main(int argc,char *argv[]){
 				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=D+M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 			}
 			else if(strcmp(op,"sub")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@SP\nM=D\n@SP\nM=M+1\n");
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 			}
 			else if(strcmp(op,"neg")==0){
 				fprintf(out,"@SP\nM=M-1\nA=M\nM=-M\n@SP\nM=M+1\n");
