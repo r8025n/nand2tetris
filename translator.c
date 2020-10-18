@@ -106,34 +106,42 @@ int main(int argc,char *argv[]){
 					}
 				}
 			}
-			else if(strcmp(op,"add")){
-
+			else if(strcmp(op,"add")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=D+M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"sub")){
-
+			else if(strcmp(op,"sub")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@SP\nM=D\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"neg")){
-
+			else if(strcmp(op,"neg")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nM=-M\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"eq")){
-
+			else if(strcmp(op,"eq")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=D-M\n@EQ_TRUE\nD;JEQ\n@SP\nA=M\nM=0\n@EQ_FALSE\n");
+				fprintf(out,"0;JMP\n(EQ_TRUE)\n@SP\nA=M\nM=1\n(EQ_FALSE)\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"gt")){
-
+			else if(strcmp(op,"gt")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@GT_TRUE\nD;JGT\n@SP\nA=M\n");
+				fprintf(out,"M=0\n@GT_FALSE\n0;JMP\n(GT_TRUE)\n@SP\nA=M\nM=1\n(GT_FALSE)\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"lt")){
-
+			else if(strcmp(op,"lt")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@LT_TRUE\nD;JLT\n@SP\nA=M\n");
+				fprintf(out,"M=0\n@LT_FALSE\n0;JMP\n(LT_TRUE)\n@SP\nA=M\nM=1\n(LT_FALSE)\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"and")){
-
+			else if(strcmp(op,"and")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=D-M\n@AND_TRUE\nD;JEQ\n@SP\nA=M\nM=0\n");
+				fprintf(out,"@AND_FALSE\n0;JMP\n(AND_TRUE)\n@SP\nA=M\nM=1\n(AND_FALSE)\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"or")){
-
+			else if(strcmp(op,"or")==0){
+				fprintf(out,"@SP\nM=M-1\nA=MD=M\n@SP\nM=M-1\nA=M\nD=D-M\n@OR_TRUE\nD;JNE\n@SP\nA=M\nM=0\n@OR_FALSE\n");
+				fprintf(out,"0;JMP\n(OR_TRUE)\n@SP\nA=M\nM=1\n(OR_FALSE)\n@SP\nM=M+1\n");
 			}
-			else if(strcmp(op,"not")){
-
+			else if(strcmp(op,"not")==0){
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\nD=D-1\n@MAKE_ZERO\nD;JEQ\n@SP\nA=M\nM=1\n@MAKE_ONE\n");
+				fprintf(out,"(MAKE_ZERO)\n@SP\nA=M\nM=0\n(MAKE_ONE)\n@SP\nM=M+1\n");
 			}
 		}
 	}
-
+	fclose(in);
+	fclose(out);
+	return 0;
 }
