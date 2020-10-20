@@ -6,13 +6,20 @@
 int main(int argc,char *argv[]){
 	char filename[25],str[25];
 	strcpy(str,argv[1]);
-	int i=0;
-
-	while(str[i]!='.'){
-		filename[i]=str[i];
-		i++;
-	}
-	filename[i]='\0';
+	//for getting the filename from filepath stored in argv[]
+	int i,j,len,st;
+	len=strlen(str);
+    for(i=len-1;i>=0;i--){
+        if(str[i]=='/' || str[i]=='\\'){
+            st=i+1;
+            break;
+        }
+    }
+    len=len-3;
+    for(i=0,j=st;j<len;i++,j++){
+        filename[i]=str[j];
+    }
+    filename[i]='\0';
 
 	FILE *in=fopen(argv[1],"r");
 	char name_out[25],stat[25];
