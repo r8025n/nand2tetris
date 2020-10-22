@@ -4,15 +4,25 @@
 #include<stdbool.h>
 
 int main(int argc,char *argv[]){
-	char filename[25],str[25];
+	char filename[25],str[25],path[35];
 	strcpy(str,argv[1]);
-	//for getting the filename from filepath stored in argv[]
-	int i,j,len,st;
+	//for parsing the filename from filepath stored in argv[]
+	int i,j,k,len,st;
 	len=strlen(str);
     for(i=len-1;i>=0;i--){
-        if(str[i]=='/' || str[i]=='\\'){
-            st=i+1;
-            break;
+        if(str[i]=='/' || str[i]=='\\' || i==0){
+            if(i==0){
+            	st=i;
+            	break;
+            }
+            else{
+            	st=i+1;
+            	for(k=0;k<st;k++){
+            		path[k]=str[k];
+            	}
+            	path[k]='\0';
+            	break;
+            }
         }
     }
     len=len-3;
@@ -23,11 +33,12 @@ int main(int argc,char *argv[]){
 
 	FILE *in=fopen(argv[1],"r");
 	char name_out[25],stat[25];
-	sprintf(name_out,"%s.asm",filename);
+	sprintf(name_out,"%s%s.asm",path,filename);
 	FILE *out=fopen(name_out,"w");
 
 	char line[50],op[10],mem[10];
 	int val;
+	int eq=0,gt=0,lt=0;
 
 	while(fgets(line,50,in)!=NULL){
 		if(isspace(line[0])==false && line[0]!='/'){
@@ -119,31 +130,31 @@ int main(int argc,char *argv[]){
 				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 			}
 			else if(strcmp(op,"neg")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nM=-M\n@SP\nM=M+1\n");
+				fprintf(out,"@SP\nA=M\nA=A-1\nM=-M\n");
 			}
 			else if(strcmp(op,"eq")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=D-M\n@EQ_TRUE\nD;JEQ\n@SP\nA=M\nM=0\n@EQ_FALSE\n");
-				fprintf(out,"0;JMP\n(EQ_TRUE)\n@SP\nA=M\nM=1\n(EQ_FALSE)\n@SP\nM=M+1\n");
+				eq++;
+				fprintf(out,"@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=D-M\n@EQ_TRUE_%d\nD;JEQ\n@SP\nA=M\nM=0\n@EQ_FALSE_%d\n",eq,eq);
+				fprintf(out,"0;JMP\n(EQ_TRUE_%d)\n@SP\nA=M\nM=-1\n(EQ_FALSE_%d)\n@SP\nM=M+1\n",eq,eq);
 			}
 			else if(strcmp(op,"gt")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@GT_TRUE\nD;JGT\n@SP\nA=M\n");
-				fprintf(out,"M=0\n@GT_FALSE\n0;JMP\n(GT_TRUE)\n@SP\nA=M\nM=1\n(GT_FALSE)\n@SP\nM=M+1\n");
+				gt++;
+				fprintf(out,"@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@GT_TRUE_%d\nD;JGT\n@SP\nA=M\n",gt);
+				fprintf(out,"M=0\n@GT_FALSE_%d\n0;JMP\n(GT_TRUE_%d)\n@SP\nA=M\nM=-1\n(GT_FALSE_%d)\n@SP\nM=M+1\n",gt,gt,gt);
 			}
 			else if(strcmp(op,"lt")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@LT_TRUE\nD;JLT\n@SP\nA=M\n");
-				fprintf(out,"M=0\n@LT_FALSE\n0;JMP\n(LT_TRUE)\n@SP\nA=M\nM=1\n(LT_FALSE)\n@SP\nM=M+1\n");
+				lt++;
+				fprintf(out,"@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@LT_TRUE_%d\nD;JLT\n@SP\nA=M\n",lt);
+				fprintf(out,"M=0\n@LT_FALSE_%d\n0;JMP\n(LT_TRUE_%d)\n@SP\nA=M\nM=-1\n(LT_FALSE_%d)\n@SP\nM=M+1\n",lt,lt,lt);
 			}
 			else if(strcmp(op,"and")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=D-M\n@AND_TRUE\nD;JEQ\n@SP\nA=M\nM=0\n");
-				fprintf(out,"@AND_FALSE\n0;JMP\n(AND_TRUE)\n@SP\nA=M\nM=1\n(AND_FALSE)\n@SP\nM=M+1\n");
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=D&M\n@SP\nM=M+1\n");
 			}
 			else if(strcmp(op,"or")==0){
-				fprintf(out,"@SP\nM=M-1\nA=MD=M\n@SP\nM=M-1\nA=M\nD=D-M\n@OR_TRUE\nD;JNE\n@SP\nA=M\nM=0\n@OR_FALSE\n");
-				fprintf(out,"0;JMP\n(OR_TRUE)\n@SP\nA=M\nM=1\n(OR_FALSE)\n@SP\nM=M+1\n");
+				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=D|M\n@SP\nM=M+1\n");
 			}
 			else if(strcmp(op,"not")==0){
-				fprintf(out,"@SP\nM=M-1\nA=M\nD=M\nD=D-1\n@MAKE_ZERO\nD;JEQ\n@SP\nA=M\nM=1\n@MAKE_ONE\n");
-				fprintf(out,"(MAKE_ZERO)\n@SP\nA=M\nM=0\n(MAKE_ONE)\n@SP\nM=M+1\n");
+				fprintf(out,"@SP\nA=M\nA=A-1\nM=!M\n");
 			}
 		}
 	}
