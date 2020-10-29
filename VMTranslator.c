@@ -4,8 +4,9 @@
 #include<stdbool.h>
 
 int main(int argc,char *argv[]){
-	char filename[25],str[25],path[35];
+	char filename[25],str[50],path[50];
 	strcpy(str,argv[1]);
+	
 	//for parsing the filename from filepath stored in argv[]
 	int i,j,k,len,st;
 	len=strlen(str);
@@ -32,15 +33,16 @@ int main(int argc,char *argv[]){
     filename[i]='\0';
 
 	FILE *in=fopen(argv[1],"r");
-	char name_out[25],stat[25];
-	sprintf(name_out,"%s%s.asm",path,filename);
+	char name_out[25],stat[50];
+	sprintf(name_out,"%s.asm",filename);
 	FILE *out=fopen(name_out,"w");
 
-	char line[50],op[10],mem[10];
+	char line[150],op[10],mem[10];
 	int val;
 	int eq=0,gt=0,lt=0;
 
-	while(fgets(line,50,in)!=NULL){
+	//started reading from the file
+	while(fgets(line,150,in)!=NULL){
 		if(isspace(line[0])==false && line[0]!='/'){
 			fprintf(out,"//%s",line);
 			sscanf(line,"%s %s %d",op,mem,&val);
@@ -156,9 +158,19 @@ int main(int argc,char *argv[]){
 			else if(strcmp(op,"not")==0){
 				fprintf(out,"@SP\nA=M\nA=A-1\nM=!M\n");
 			}
+			else if(strcmp(op,"label")==0){
+				fprintf(out,"(%s)\n",mem);
+			}
+			else if(strcmp(op,"goto")==0){
+				fprintf(out,"@%s\n0;JMP\n",mem);
+			}
+			else if(strcmp(op,"if-goto")==0){
+				fprintf(out,"@SP\nAM=M-1\nD=M\n@%s\nD;JNE\n",mem);
+			}
 		}
 	}
 	fclose(in);
 	fclose(out);
 	return 0;
 }
+
