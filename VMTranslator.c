@@ -1,16 +1,18 @@
-//shdfgsdjhfjd
 #include<stdio.h>
 #include<ctype.h>
 #include<string.h>
 #include<stdbool.h>
+#include <dirent.h>
 
 int main(int argc,char *argv[]){
-	char filename[25],str[50],path[50];
+	char filename[25],str[50],path[50],dir_filename[25],fullpath[100];
 	strcpy(str,argv[1]);
 	
-	//for parsing the filename from filepath stored in argv[]
-	int i,j,k,len,st;
+	int i,j,k,len,st,flip=0;
+
 	len=strlen(str);
+
+	//for parsing the filename from filepath stored in argv[]
     for(i=len-1;i>=0;i--){
         if(str[i]=='/' || str[i]=='\\' || i==0){
             if(i==0){
@@ -27,20 +29,45 @@ int main(int argc,char *argv[]){
             }
         }
     }
-    len=len-3;
+    if(str[len-1]=='m' && str[len-2]=='v' && str[len-3]=='.'){
+    	len=len-3;
+    	flip=1;
+    }
     for(i=0,j=st;j<len;i++,j++){
         filename[i]=str[j];
     }
     filename[i]='\0';
 
-	FILE *in=fopen(argv[1],"r");
 	char name_out[25],stat[50];
-	sprintf(name_out,"%s.asm",filename);
-	FILE *out=fopen(name_out,"w");
-
-	char line[150],op[10],mem[10];
-	int val;
+	char line[150],op[10],mem[10],loop_label[30];
+	int val,loops=0;
 	int eq=0,gt=0,lt=0;
+	struct dirent *de;
+	DIR *dr=opendir(argv[1]);
+	FILE *in,*out;
+
+	sprintf(name_out,"%s.asm",filename);
+	out=fopen(name_out,"w");
+	//if its a file, flip=1
+	if(flip==1){
+		in=fopen(argv[1],"r");
+	}
+
+	DIRECTORY:
+	//if its a directory, flip=0
+	if(flip==0){
+		de=readdir(dr);
+		if(de==NULL)
+			goto END;
+		else{
+			//de=readdir(dr);
+			strcpy(dir_filename,de->d_name);
+			if(dir_filename[0]=='.')
+				goto DIRECTORY;
+			sprintf(fullpath,"%s/%s",str,dir_filename);
+			in=fopen(fullpath,"r");
+		}
+	}
 
 	//started reading from the file
 	while(fgets(line,150,in)!=NULL){
@@ -168,10 +195,33 @@ int main(int argc,char *argv[]){
 			else if(strcmp(op,"if-goto")==0){
 				fprintf(out,"@SP\nAM=M-1\nD=M\n@%s\nD;JNE\n",mem);
 			}
+			else if(strcmp(op,"call")==0){
+				sprintf(loop_label,"ret$%s_%d",mem,loops);
+				loops++;
+				fprintf(out,"@%s\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=A\n",loop_label);
+				fprintf(out,"@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=A\n@SP\nA=M\nM=D\n");
+				fprintf(out,"@SP\nM=M+1\n@SP\nD=M\n@5\nD=D-A\n@%d\nD=D-A\n@SP\nD=M\n@LCL\nM=D\n@%s\n0;JMP\n(%s)\n",val,mem,loop_label);
+			}
+			else if(strcmp(op,"function")==0){
+				fprintf(out,"(%s)\n@%d\nD=A\n(loop_%d)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n@loop_%d\nD=D-1;JGT\n",mem,val,loops,loops);
+				loops++;
+			}
+			else if(strcmp(op,"return")==0){
+				fprintf(out,"@LCL\nD=M\n@endframe_%d\nM=D\n@5\nD=D-A\nA=D\nD=M\n@retaddr_%d\nM=D\n@SP\nA=M-1\nD=M\n@ARG\nA=M\nM=D\n",loops,loops);
+				fprintf(out,"@ARG\nD=M+1\n@SP\nM=D\n@endframe_%d\nM=M-1\nA=M\nD=M\n@THAT\nM=D\n@endframe_%d\nM=M-1\nA=M\nD=M\n@THIS\n",loops,loops);
+				fprintf(out,"M=D\n@endframe_%d\nM=M-1\nA=M\nD=M\n@ARG\nM=D\n@endframe_%d\nM=M-1\nA=M\nD=M\n@LCL\nM=D\n@retaddr_%d\nA=M\n0;JMP\n",loops,loops,loops);
+			}
 		}
 	}
+	if(flip==0){
+		fclose(in);
+		goto DIRECTORY;
+	}
+	END:
 	fclose(in);
 	fclose(out);
+	closedir(dr);
 	return 0;
 }
+
 
