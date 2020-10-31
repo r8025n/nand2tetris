@@ -48,6 +48,15 @@ int main(int argc,char *argv[]){
 
 	sprintf(name_out,"%s.asm",filename);
 	out=fopen(name_out,"w");
+	
+	//Bootstrap code in case it is a directory
+	if(flip==0){
+		fprintf(out,"@256\nD=A\n@SP\nM=D\n");
+		fprintf(out,"@ret$bootstrap_00\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=M\n");
+		fprintf(out,"@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=M\n@SP\nA=M\nM=D\n");
+		fprintf(out,"@SP\nM=M+1\n@SP\nD=M\n@5\nD=D-A\n@0\nD=D-A\n@ARG\nM=D\n@SP\nD=M\n@LCL\nM=D\n@Sys.init\n0;JMP\n(ret$bootstrap_00)\n");
+	}
+
 	//if its a file, flip=1
 	if(flip==1){
 		in=fopen(argv[1],"r");
@@ -60,11 +69,13 @@ int main(int argc,char *argv[]){
 		if(de==NULL)
 			goto END;
 		else{
-			//de=readdir(dr);
 			strcpy(dir_filename,de->d_name);
-			if(dir_filename[0]=='.')
+			int dlen=strlen(dir_filename);
+			if(dir_filename[0]=='.' || !(dir_filename[dlen-1]=='m' && dir_filename[dlen-2]=='v' && dir_filename[dlen-3]=='.'))
 				goto DIRECTORY;
+			printf("%s\n",dir_filename);
 			sprintf(fullpath,"%s/%s",str,dir_filename);
+			printf("FULLPATH=%s\n",fullpath);
 			in=fopen(fullpath,"r");
 		}
 	}
@@ -198,12 +209,12 @@ int main(int argc,char *argv[]){
 			else if(strcmp(op,"call")==0){
 				sprintf(loop_label,"ret$%s_%d",mem,loops);
 				loops++;
-				fprintf(out,"@%s\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=A\n",loop_label);
-				fprintf(out,"@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=A\n@SP\nA=M\nM=D\n");
-				fprintf(out,"@SP\nM=M+1\n@SP\nD=M\n@5\nD=D-A\n@%d\nD=D-A\n@SP\nD=M\n@LCL\nM=D\n@%s\n0;JMP\n(%s)\n",val,mem,loop_label);
+				fprintf(out,"@%s\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=M\n",loop_label);
+				fprintf(out,"@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=M\n@SP\nA=M\nM=D\n");
+				fprintf(out,"@SP\nM=M+1\n@SP\nD=M\n@5\nD=D-A\n@%d\nD=D-A\n@ARG\nM=D\n@SP\nD=M\n@LCL\nM=D\n@%s\n0;JMP\n(%s)\n",val,mem,loop_label);
 			}
 			else if(strcmp(op,"function")==0){
-				fprintf(out,"(%s)\n@%d\nD=A\n(loop_%d)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n@loop_%d\nD=D-1;JGT\n",mem,val,loops,loops);
+				fprintf(out,"(%s)\n@%d\nD=A\n@end_%d\nD;JEQ\n(loop_%d)\n@SP\nA=M\nM=0\n@SP\nM=M+1\nD=D-1\n@loop_%d\nD;JGT\n(end_%d)",mem,val,loops,loops,loops,loops);
 				loops++;
 			}
 			else if(strcmp(op,"return")==0){
