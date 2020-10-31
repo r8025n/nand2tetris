@@ -46,7 +46,15 @@ int main(int argc,char *argv[]){
 	DIR *dr=opendir(argv[1]);
 	FILE *in,*out;
 
-	sprintf(name_out,"%s.asm",filename);
+	if(flip==1){
+		//if its a file
+		sprintf(name_out,"%s/%s.asm",path,filename);
+	}
+	else if(flip==0){
+		//if its a directory
+		sprintf(name_out,"%s/%s.asm",str,filename);	
+	}
+	
 	out=fopen(name_out,"w");
 	
 	//Bootstrap code in case it is a directory
@@ -73,9 +81,9 @@ int main(int argc,char *argv[]){
 			int dlen=strlen(dir_filename);
 			if(dir_filename[0]=='.' || !(dir_filename[dlen-1]=='m' && dir_filename[dlen-2]=='v' && dir_filename[dlen-3]=='.'))
 				goto DIRECTORY;
-			printf("%s\n",dir_filename);
+			//printf("%s\n",dir_filename);
 			sprintf(fullpath,"%s/%s",str,dir_filename);
-			printf("FULLPATH=%s\n",fullpath);
+			//printf("FULLPATH=%s\n",fullpath);
 			in=fopen(fullpath,"r");
 		}
 	}
@@ -112,7 +120,10 @@ int main(int argc,char *argv[]){
 					fprintf(out,"D=A\n@5\nA=A+D\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 				}
 				else if(strcmp(mem,"static")==0){
-					sprintf(stat,"%s.%d",filename,val);
+					if(flip==1)
+						sprintf(stat,"%s.%d",filename,val);
+					else
+						sprintf(stat,"%s.%d",dir_filename,val);
 					fprintf(out,"@%s\n",stat);
 					fprintf(out,"D=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 				}
@@ -149,7 +160,10 @@ int main(int argc,char *argv[]){
 					fprintf(out,"@%d\nD=A\n@5\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",val);
 				}
 				else if(strcmp(mem,"static")==0){
-					sprintf(stat,"%s.%d",filename,val);
+					if(flip==1)
+						sprintf(stat,"%s.%d",filename,val);
+					else
+						sprintf(stat,"%s.%d",dir_filename,val);
 					fprintf(out,"@SP\nM=M-1\nA=M\nD=M\n");
 					fprintf(out,"@%s\nM=D\n",stat);
 				}
