@@ -1,0 +1,129 @@
+class Controller{
+	field int tx,ty,tsx,tsy; //tx and ty are initial coordinates of the target, tsx and tsy are the sizes
+	field int bx,by,bsx,bsy; //bx and by are initial coordinates of the target, bsx and bsy are the sizes
+	field int direction;  	//determines if the target will move up or down
+	field char key; 		 //takes input from the keyboard
+	field bool exit;
+
+	constructor Controller new(){
+	//initializes the bullet
+		let bx=101;
+		let by=126;
+		let bsx=3;
+		let bsy=2;
+	//initializes target
+		let tx=501;
+		let ty=102;
+		let tsx=10;
+		let tsy=30;
+
+		let exit=false;
+		let direction=0;
+		
+		do tdraw();
+		do bdraw();
+
+		return this;
+	}
+
+	method void dispose(){
+		do Memory.deAlloc(this);
+		return;
+	}
+
+	method void bdraw(){
+	/*draws the bullet*/
+		do Screen.setColor(true);
+		do Screen.drawRectangle(bx,by,bx+bsx,by+bsy);
+		return;
+	}
+
+	method void tdraw(){
+	/*draws the target*/
+		do Screen.setColor(true);
+		do Screen.drawRectangle(tx,ty,tx+tsx,ty+tsy);
+		return;
+	}
+	
+	method void berase(){
+	/*erase the bullet*/
+		do Screen.setColor(false);
+		do Screen.drawRectangle(bx,by,bx+bsx,by+bsy);
+		return;
+	}
+
+	
+	method void terase(){
+	/*erase the target*/
+		do Screen.setColor(false);
+		do Screen.drawRectangle(tx,ty,tx+tsx,ty+tsy);
+		return;
+	}
+
+
+	method void targetMove(){
+	/*moves the target up and down*/
+		if(direction=0){ //if direction is 0 target moves up
+			if(ty>3){
+				do terase();
+				let ty=ty-2; 
+				do tdraw();
+				do Sys.wait(7);// if hitting the target is hard, increasing the value here bit more will help
+			}
+			if(ty<3){
+				let direction=1;
+			}
+		}
+		if(direction=1){ //if direction is 1 target moves down
+			if(ty+tsy<252){
+				do terase();
+				let ty=ty+2;
+				do tdraw();
+				do Sys.wait(7);// if hitting the target is hard, increasing the value here bit more will help
+			}
+			if(ty+tsy>251){
+				let direction=0;
+			}
+		}
+		return;
+	}
+
+	method void bulletMove(){
+	/*moves the bullet along a line*/
+		do targetMove();
+		let key=Keyboard.keyPressed();
+		if(key=32){
+			while(bx+bsx<509){
+				do berase();
+				let bx=bx+3;
+				do bdraw();
+				do targetMove(); //target move is also included, so that both target and bullet moves simultanously
+				if(ty<127){
+					if(ty+tsy>126){
+						if(bx+bsx>500){
+							let exit=true;
+							do Output.moveCursor(7,25);
+							do Output.printString("Winner!");
+						}
+					}
+				}
+			}
+			do berase();
+			let bx=101;
+		}
+		return;
+	}
+
+
+	method void control(){
+	/*move the target and the bullet if exit=false*/
+		while(~exit){
+			do bulletMove();
+			let key=Keyboard.keyPressed();
+			if(key=81){ // if q is pressed, exit becomes true and the game exits
+				let exit=true;
+			}
+		}
+		return;
+	}
+}

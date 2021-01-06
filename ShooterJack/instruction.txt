@@ -1,0 +1,5 @@
+Its a very simple game built with Jack language.
+
+Plan of the game is, there is a still shooter which shoots a bullet each time you press "SPACEBAR" in your keyboard. And your target is a moving rectangle which is continiuosly moving from up to down. If the bullets hits the target one time, you are the winner.
+
+You can exit the game anytime by pressing "Q" in the keyboard.

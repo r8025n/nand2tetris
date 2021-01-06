@@ -1,0 +1,31 @@
+/**Creates the shooter object*/
+class Shooter{
+	field int x,y,szx,szy;
+	field int xx,yy,szxx,szyy;
+
+	constructor Shooter new(){
+		let x=80;
+		let y=102;
+		let szx=15;
+		let szy=50;
+
+		let xx=95;
+		let yy=122;
+		let szxx=5;
+		let szyy=10;
+		do draw();
+		return this;
+	}
+
+	method void dispose(){
+		do Memory.dealloc(this);
+		return;
+	}
+
+	method void draw(){
+		do Screen.setColor(true);
+		do Screen.drawRectangle(x,y,x+szx,y+szy);
+		do Screen.drawRectangle(xx,yy,xx+szxx,yy+szyy);
+		return;
+	}
+}

@@ -1,0 +1,11 @@
+class Main{
+	function void main(){
+		var Shooter s;
+		var Controller c;
+
+		let s=Shooter.new();
+		let c=Controller.new();
+		do c.control();
+		return;
+	}
+}

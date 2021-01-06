@@ -1,0 +1,62 @@
+function Shooter.new 0
+push constant 8
+call Memory.alloc 1
+pop pointer 0
+push constant 80
+pop this 0
+push constant 102
+pop this 1
+push constant 15
+pop this 2
+push constant 50
+pop this 3
+push constant 95
+pop this 4
+push constant 122
+pop this 5
+push constant 5
+pop this 6
+push constant 10
+pop this 7
+push pointer 0
+call Shooter.draw 1
+pop temp 0
+push pointer 0
+return
+function Shooter.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.dealloc 1
+pop temp 0
+push constant 0
+return
+function Shooter.draw 0
+push argument 0
+pop pointer 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+push this 3
+add
+call Screen.drawRectangle 4
+pop temp 0
+push this 4
+push this 5
+push this 4
+push this 6
+add
+push this 5
+push this 7
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
