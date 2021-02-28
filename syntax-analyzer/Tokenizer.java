@@ -63,7 +63,6 @@ public class test{
 		map.put("~","symbol");
 
 		if(!dirpath.isDirectory()){
-			//System.out.println("it is a single file, not a directory");
 			fileList=new File[1];
 			fileList[0]=dirpath;
 			outname= name.split("[.]");
@@ -94,7 +93,6 @@ public class test{
 
 				try{
 					sc=new Scanner(f);
-					System.out.println(f.getName()+"OPENED");
 				}catch(FileNotFoundException e){
 					System.out.println(f.getName()+" ->File not found\n");
 				}
@@ -127,7 +125,6 @@ public class test{
 									String val=map.get(str[i]);
 
 									if(val==null){
-										//System.out.println(str[i]+"->Not included in the map\n");
 										int num=str[i].charAt(0);
 										if(str[i].charAt(0)=='/'){
 											brk=1;
@@ -135,7 +132,6 @@ public class test{
 										}
 										if(num>=48 && num<=57){
 											val="integerConstant";
-											//System.out.println("<"+val+">"+str[i]+"</"+val+">");
 											try{
 												out.write("<"+val+">"+str[i]+"</"+val+">\n");
 											}catch(IOException k){
@@ -149,7 +145,6 @@ public class test{
 										}
 										else if(str[i].equals("\"") && flag==1){
 											flag=0;
-											//System.out.println("<stringConstant>"+temp+"</stringConstant>");
 											try{
 												out.write("<stringConstant>"+temp+"</stringConstant>\n");
 											}catch(IOException k){
@@ -160,7 +155,6 @@ public class test{
 											temp+=str[i];
 										}
 										else{
-											//System.out.println("<identifier>"+str[i]+"</identifier>");
 											try{
 												out.write("<identifier>"+str[i]+"</identifier>\n");
 											}catch(IOException k){
