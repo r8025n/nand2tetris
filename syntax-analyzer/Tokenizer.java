@@ -2,195 +2,111 @@ import java.util.*;
 import java.io.*;
 import java.lang.String;
 
-public class test{
-	public static void main(String args[]){
+public class Tokenizer{
+
+	Map<String,String> map=new HashMap<String,String>();
+
+	String[] keywords={"class","constructor","function","method","field","static","var","int","char","boolean","void","true","false","null","this","let","do","if","else","while","return"};
+
+	String[] symbols={"[","]","(",")","{","}",".",",",";","+","-","*","/","&","|","<",">","=",".","~"};
+	
+	void mapInitialize(){
+		for(String s : keywords){
+			map.put(s,"keyword");
+		}
+
+		for(String s : symbols){
+			map.put(s,"symbol");
+		}
+	}
+
+
+	List<String> tokenize(File f){
 
 		Scanner sc=null;
 		Scanner sc2=null;
 		int flag=0,brk=0;
 		String temp="";
 
-		String name=args[0];
-		File dirpath=new File(name);
-		File fileList[];
-		String[] outname;
-		int dir=0;
-		BufferedWriter out=null;
-		String outfile=null;
+		List<String> tokens=new ArrayList<String>();
 
-		Map<String,String> map=new HashMap<String,String>();
-
-		map.put("class","keyword");
-		map.put("constructor","keyword");
-		map.put("function","keyword");
-		map.put("method","keyword");
-		map.put("field","keyword");
-		map.put("static","keyword");
-		map.put("var","keyword");
-		map.put("int","keyword");
-		map.put("char","keyword");
-		map.put("boolean","keyword");
-		map.put("void","keyword");
-		map.put("true","keyword");
-		map.put("false","keyword");
-		map.put("null","keyword");
-		map.put("this","keyword");
-		map.put("let","keyword");
-		map.put("do","keyword");
-		map.put("if","keyword");
-		map.put("else","keyword");
-		map.put("while","keyword");
-		map.put("return","keyword");
-
-		map.put("[","symbol");
-		map.put("]","symbol");
-		map.put("(","symbol");
-		map.put(")","symbol");
-		map.put("{","symbol");
-		map.put("}","symbol");
-		map.put(".","symbol");
-		map.put(",","symbol");
-		map.put(";","symbol");
-		map.put("+","symbol");
-		map.put("-","symbol");
-		map.put("*","symbol");
-		map.put("/","symbol");
-		map.put("&","symbol");
-		map.put("|","symbol");
-		map.put("<","symbol");
-		map.put(">","symbol");
-		map.put("=","symbol");
-		map.put("~","symbol");
-
-		if(!dirpath.isDirectory()){
-			fileList=new File[1];
-			fileList[0]=dirpath;
-			outname= name.split("[.]");
-		}
-		else{
-			fileList= dirpath.listFiles();
-			dir=1;
-			outname=new String[1];
-			outname[0]=name;
+		try{
+			sc=new Scanner(f);
+		}catch(FileNotFoundException e){
+			System.out.println(f.getName()+" ->File not found\n");
 		}
 
-		for(File f : fileList){
-			String[] fname=f.getName().split("[.]");
-			if(fname[1].equals("jack")){
-				if(dir==0){
-					outfile=outname[0]+".xml";
+		while(sc.hasNextLine()){
+			String st=sc.nextLine();
+			if(!st.equals("")){
+				char ch=st.charAt(0);
+				char ch2;
+				try{
+					ch2=st.charAt(1);
+				}catch(StringIndexOutOfBoundsException s){
+					ch2=' ';
+				}
+				if(ch=='/' || (ch==' ' && ch2=='*')){
+					continue;
 				}
 				else{
-					outfile=outname[0]+"/"+fname[0]+".xml";
-				}
-
-				try{
-					out = new BufferedWriter(new FileWriter(outfile));
-					out.write("<tokens>\n");
-				}catch(IOException k){
-					System.out.println(outfile + " ->Couldn't open the output file");
-				}
-
-				try{
-					sc=new Scanner(f);
-				}catch(FileNotFoundException e){
-					System.out.println(f.getName()+" ->File not found\n");
-				}
-
-				while(sc.hasNextLine()){
-					String st=sc.nextLine();
-					if(!st.equals("")){
-						char ch=st.charAt(0);
-						char ch2;
-						try{
-							ch2=st.charAt(1);
-						}catch(StringIndexOutOfBoundsException s){
-							ch2=' ';
+					sc2=new Scanner(st);
+					while(sc2.hasNext()){
+						if(brk==1){
+							brk=0;
+							break;
 						}
-						if(ch=='/' || (ch==' ' && ch2=='*')){
-							continue;
-						}
-						else{
-							sc2=new Scanner(st);
-							while(sc2.hasNext()){
-								if(brk==1){
-									brk=0;
-									break;
-								}
-								String token=sc2.next();
-								String[] str= token.split("(?<=[~.;,\\[\\])(\"])|(?=[~.;,\\[\\])(\"])"); 
+						String token=sc2.next();
+						String[] str= token.split("(?<=[~.;,\\[\\])(\"])|(?=[~.;,\\[\\])(\"])"); 
 
-								for(int i=0;i<str.length;i++){
+						for(int i=0;i<str.length;i++){
 
-									String val=map.get(str[i]);
+							int num=str[i].charAt(0);
+							if(str[i].charAt(0)=='/'){
+								brk=1;
+								continue;
+							}
 
-									if(val==null){
-										int num=str[i].charAt(0);
-										if(str[i].charAt(0)=='/'){
-											brk=1;
-											continue;
-										}
-										if(num>=48 && num<=57){
-											val="integerConstant";
-											try{
-												out.write("<"+val+">"+str[i]+"</"+val+">\n");
-											}catch(IOException k){
-												System.out.println("Something is Wrong");
-											}
-										}
-
-										else if(str[i].equals("\"") && flag==0){
-											flag=1;
-											temp="";
-										}
-										else if(str[i].equals("\"") && flag==1){
-											flag=0;
-											try{
-												out.write("<stringConstant>"+temp+"</stringConstant>\n");
-											}catch(IOException k){
-												System.out.println("Something is Wrong");
-											}
-										}
-										else if(flag==1){
-											temp+=str[i];
-										}
-										else{
-											try{
-												out.write("<identifier>"+str[i]+"</identifier>\n");
-											}catch(IOException k){
-												System.out.println("Something is Wrong");
-											}
-										}
-									}
-									else{
-										try{
-											if(str[i].equals("<"))
-												out.write("<"+val+">"+"&lt;"+"</"+val+">\n");
-											else if(str[i].equals(">"))
-												out.write("<"+val+">"+"&gt;"+"</"+val+">\n");
-											else if(str[i].equals("&"))
-												out.write("<"+val+">"+"&amp;"+"</"+val+">\n");
-											else if(str[i].equals("\""))
-												out.write("<"+val+">"+"&quot;"+"</"+val+">\n");
-											else
-												out.write("<"+val+">"+str[i]+"</"+val+">\n");
-										}catch(IOException k){
-											System.out.println("Something is Wrong");
-										}
-									}
-								}
+							if(str[i].equals("\"") && flag==0){
+								flag=1;
+								temp+=str[i];
+							}
+							else if(str[i].equals("\"") && flag==1){
+								temp+=str[i];
+								flag=0;
+								tokens.add(temp);
+								temp="";
+							}
+							else if(flag==1){
+								temp+=str[i];
+							}
+							else{
+								tokens.add(str[i]);
 							}
 						}
 					}
 				}
-				try{
-					out.write("</tokens>");
-					out.close();
-				}catch(IOException k){
-					System.out.println("File didn't close properly");
-				}
 			}
 		}
+		return tokens;
+	}
 
+	String tokenType(String s){
+		String val=map.get(s);
+
+		if(val==null){
+			char num=s.charAt(0);
+			
+			if(num>=48 && num<=57){
+				val="integerConstant";
+			}
+			else if(num=='"'){
+				val="stringConstant";
+			}
+			else{
+				val="identifier";
+			}
+		}
+		return val;
 	}
 }
