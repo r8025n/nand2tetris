@@ -70,6 +70,7 @@ public class Tokenizer{
 							if(str[i].equals("\"") && flag==0){
 								flag=1;
 								temp+=str[i];
+								temp+=" ";
 							}
 							else if(str[i].equals("\"") && flag==1){
 								temp+=str[i];
@@ -79,6 +80,7 @@ public class Tokenizer{
 							}
 							else if(flag==1){
 								temp+=str[i];
+								temp+=" ";
 							}
 							else{
 								tokens.add(str[i]);
