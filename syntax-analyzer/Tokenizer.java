@@ -57,12 +57,12 @@ public class Tokenizer{
 							break;
 						}
 						String token=sc2.next();
-						String[] str= token.split("(?<=[~.;,\\[\\])(\"])|(?=[~.;,\\[\\])(\"])"); 
+						String[] str= token.split("(?<=[~.;,\\[\\])\\-\\+(\"])|(?=[~.;,\\[\\])\\-\\+(\"])"); 
 
 						for(int i=0;i<str.length;i++){
 
 							int num=str[i].charAt(0);
-							if(str[i].charAt(0)=='/'){
+							if(str[i].charAt(0)=='/' && str[i].length()>1){
 								brk=1;
 								continue;
 							}
