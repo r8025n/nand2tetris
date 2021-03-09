@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 import java.lang.String;
 
-public class test2 extends test{
+public class CompilationEngine extends Tokenizer{
 
 	File fileList[];
 	String[] outname;
@@ -12,7 +12,7 @@ public class test2 extends test{
 
 	List<String> tokens;
 
-	test2(String name){
+	CompilationEngine(String name){
 		File dirpath=new File(name);
 
 		if(!dirpath.isDirectory()){
@@ -34,6 +34,7 @@ public class test2 extends test{
 		for(File f : fileList){
 			String[] fname=f.getName().split("[.]");
 			if(fname[1].equals("jack")){
+				i=0;
 				if(dir==0){
 					outfile=outname[0]+".xml";
 				}
@@ -428,17 +429,48 @@ public class test2 extends test{
 			System.out.println("Couldn't write in file");
 		}
 
-		compileTerm();
-		String temp=tokens.get(i);
-		while(!(temp.equals(";") || temp.equals("]") || temp.equals(")") || temp.equals("}") || temp.equals(",") )){
-			if(tokenType(temp).equals("symbol")){
-				writee(tokens.get(i));
-				i++;
-			}
-			else
-				compileTerm();
+		String tempp=tokens.get(i);
 
-			temp=tokens.get(i);
+		while(!(tempp.equals(";") || tempp.equals("]") || tempp.equals(")") || tempp.equals("}") || tempp.equals(",") )){
+
+	
+			if(tempp.equals("(")){
+				try{
+					out.write("<term>\n");
+				}catch(IOException e){
+					System.out.println("Couldn't write in file");
+				}
+
+				eat("(");
+				compileExpression();
+				eat(")");
+
+				try{
+					out.write("</term>\n");
+				}catch(IOException e){
+					System.out.println("Couldn't write in file");
+				}
+			}
+			else if(tempp.equals("[")){
+				eat("[");
+				compileExpression();
+				eat("]");
+			}
+			else if(tempp.equals("~") || (tempp.equals("-") && tokens.get(i-1).equals("("))){
+				compileTerm();
+			}
+
+			else{
+				if(tokenType(tempp).equals("identifier") || tokenType(tempp).equals("integerConstant") || tokenType(tempp).equals("stringConstant") || tokenType(tempp).equals("keyword")){
+					compileTerm();
+				}
+				else{
+					writee(tempp);
+					i++;
+				}
+			}
+			tempp=tokens.get(i);
+
 		}
 		try{
 			out.write("</expression>\n");
@@ -463,9 +495,28 @@ public class test2 extends test{
 			compileExpressionList();
 			eat(")");
 		}
+		else if(tokens.get(i).equals("~")){
+			eat("~");
+			compileTerm();
+		}
+		else if(tokens.get(i).equals("(")){
+			eat("(");
+			compileExpression();
+			eat(")");
+		}
+		else if(tokens.get(i).equals("-") && tokens.get(i-1).equals("(")){
+			eat("-");
+			compileTerm();
+		}
 		else{
-			if(tokenType(tokens.get(i)).equals("identifier"))
+			if(tokenType(tokens.get(i)).equals("identifier")){
 				eat("abc");
+				if(tokens.get(i).equals("[")){
+					eat("[");
+					compileExpression();
+					eat("]");
+				}
+			}
 			else{
 				writee(tokens.get(i));
 				i++;
