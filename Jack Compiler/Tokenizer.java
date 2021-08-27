@@ -2,113 +2,139 @@ import java.util.*;
 import java.io.*;
 import java.lang.String;
 
-public class Tokenizer{
+public class Tokenizer {
 
-	Map<String,String> map=new HashMap<String,String>();
+	Map<String,String> map = new HashMap<String, String>();
 
-	String[] keywords={"class","constructor","function","method","field","static","var","int","char","boolean","void","true","false","null","this","let","do","if","else","while","return"};
+	final static String[] keywords = {"class", "constructor", "function", "method", "field", "static", 
+						"var", "int", "char", "boolean", "void", "true","false", "null", 
+						"this", "let", "do", "if", "else", "while", "return"};
 
-	String[] symbols={"[","]","(",")","{","}",".",",",";","+","-","*","/","&","|","<",">","=",".","~"};
+	final static String[] symbols = {"[", "]", "(", ")", "{", "}", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", ".", "~"};
 	
-	void mapInitialize(){
-		for(String s : keywords){
-			map.put(s,"keyword");
+	void mapInitialize() {
+		for (String s : keywords) {
+			map.put(s, "keyword");
 		}
 
 		for(String s : symbols){
-			map.put(s,"symbol");
+			map.put(s, "symbol");
 		}
 	}
 
 
-	List<String> tokenize(File f){
+	List<String> tokenize(File file) {
+		Scanner scanner1 = null, scanner2 = null;
+		boolean stringTypeToken = false, commentTypeToken = false;
+		List<String> tokenList = new ArrayList<String>();
+		String tempString = "";
 
-		Scanner sc=null;
-		Scanner sc2=null;
-		int flag=0,brk=0;
-		String temp="";
-
-		List<String> tokens=new ArrayList<String>();
-
-		try{
-			sc=new Scanner(f);
-		}catch(FileNotFoundException e){
-			System.out.println(f.getName()+" ->File not found\n");
+		try {
+			scanner1=new Scanner(file);
+		} catch (FileNotFoundException e) {
+			System.out.println(file.getName()+" ->File not found\n");
 		}
 
-		while(sc.hasNextLine()){
-			String st=sc.nextLine();
-			if(!st.equals("")){
-				char ch=st.charAt(0);
-				char ch2;
-				try{
-					ch2=st.charAt(1);
-				}catch(StringIndexOutOfBoundsException s){
-					ch2=' ';
-				}
-				if(ch=='/' || (ch==' ' && ch2=='*')){
+		while (scanner1.hasNextLine()) {
+			String newString = scanner1.nextLine();
+			
+			if (! isEmptyLine(newString)) {
+				if(isStartingComment(newString))
 					continue;
-				}
-				else{
-					sc2=new Scanner(st);
-					while(sc2.hasNext()){
-						if(brk==1){
-							brk=0;
+				else {
+					scanner2 = new Scanner(newString);
+					
+					while (scanner2.hasNext()) {
+						if (commentTypeToken == true) {
+							commentTypeToken = false;
 							break;
 						}
-						String token=sc2.next();
-						String[] str= token.split("(?<=[~.;,\\[\\])\\-\\+(\"])|(?=[~.;,\\[\\])\\-\\+(\"])"); 
 
-						for(int i=0;i<str.length;i++){
+						String token = scanner2.next();
+						String[] splittedToken = token.split("(?<=[~.;,\\[\\])\\-\\+(\"])|(?=[~.;,\\[\\])\\-\\+(\"])"); 
 
-							int num=str[i].charAt(0);
-							if(str[i].charAt(0)=='/' && str[i].length()>1){
-								brk=1;
+						for (int i = 0; i < splittedToken.length; i++){							
+							if (isInLineComment(splittedToken[i])) {
+								commentTypeToken = true;
 								continue;
 							}
 
-							if(str[i].equals("\"") && flag==0){
-								flag=1;
-								temp+=str[i];
-								temp+=" ";
+							if (splittedToken[i].equals("\"") && stringTypeToken == false) {
+								// start of a string
+								stringTypeToken = true;
+								tempString += splittedToken[i];
+								tempString += " ";
 							}
-							else if(str[i].equals("\"") && flag==1){
-								temp+=str[i];
-								flag=0;
-								tokens.add(temp);
-								temp="";
+							else if (splittedToken[i].equals("\"") && stringTypeToken == true) {
+								// ending of the string
+								tempString += splittedToken[i];
+								stringTypeToken = false;
+								tokenList.add(tempString);
+								tempString = "";
 							}
-							else if(flag==1){
-								temp+=str[i];
-								temp+=" ";
+							else if (stringTypeToken == true){
+								// middle of the string
+								tempString += splittedToken[i];
+								tempString += " ";
 							}
-							else{
-								tokens.add(str[i]);
+							else {
+								tokenList.add(splittedToken[i]);
 							}
 						}
 					}
 				}
 			}
 		}
-		return tokens;
+		return tokenList;
 	}
 
-	String tokenType(String s){
-		String val=map.get(s);
+	boolean isInLineComment(String str) {
+		if(str.charAt(0) == '/' && str.length() > 1)
+			return true;
 
-		if(val==null){
-			char num=s.charAt(0);
+		return false;
+	}
+
+	boolean isEmptyLine(String str) {
+		if (str.equals(""))
+			return true;
+
+		return false;
+	}
+
+	boolean isStartingComment(String str) {
+		char char1 = str.charAt(0);
+		char char2;
+		
+		try {
+			char2 = str.charAt(1);
+		}catch (StringIndexOutOfBoundsException s) {
+			char2 = ' ';
+		}
+
+		if (char1 == '/' || (char1 == ' ' && char2 == '*'))
+			return true;
+
+		return false;
+	}
+
+	String tokenType(String str) {
+		String type = map.get(str);
+
+		if(type == null) {
 			
-			if(num>=48 && num<=57){
-				val="integerConstant";
+			char firstChar = str.charAt(0);
+			
+			if (firstChar >= 48 && firstChar <= 57) {
+				type = "integerConstant";
 			}
-			else if(num=='"'){
-				val="stringConstant";
+			else if (firstChar == '"') {
+				type = "stringConstant";
 			}
-			else{
-				val="identifier";
+			else {
+				type = "identifier";
 			}
 		}
-		return val;
+		return type;
 	}
 }

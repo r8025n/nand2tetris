@@ -12,7 +12,7 @@ public class SymbolTable {
 	HashMap<String, Identifier> classLevelMap, subroutineLevelMap;
 
 	SymbolTable(String className) {
-		this.className = className
+		this.className = className;
 		classLevelMap = new HashMap<>();
 		subroutineLevelMap = new HashMap<>();
 	}
@@ -44,19 +44,24 @@ public class SymbolTable {
 		return searchIdentifier(identifier).kind;
 	}
 
-	String  getIndex(String identifier) {
+	int getIndex(String identifier) {
 		return searchIdentifier(identifier).index;
 	}
 
 	Identifier searchIdentifier(String identifier) {
-		if (subroutineLevelMap.containsKey(identifier)) 
-			return subroutineLevelMap.get(indetifier);
+		Identifier id = null;
+
+		if (subroutineLevelMap.containsKey(identifier)){
+			id = subroutineLevelMap.get(identifier);
+		} 	
 		else if(classLevelMap.containsKey(identifier))
-			return subroutineLevelMap.get(identifier);
+			id = subroutineLevelMap.get(identifier);
+
+		return id;
 	}
 
 	int selectIndex(String type) {
-		int returnValue;
+		int returnValue = 0;
 
 		if(type.equals("field")) {
 			returnValue = fieldIndex;
