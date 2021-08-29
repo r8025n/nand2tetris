@@ -7,14 +7,16 @@ public class SymbolTable {
 	private int argumentIndex = 0;
 	private int localIndex = 0;
 	private String className = "";
-	//private String subroutineName = "";
 
 	HashMap<String, Identifier> classLevelMap, subroutineLevelMap;
 
-	SymbolTable(String className) {
-		this.className = className;
+	SymbolTable() {
 		classLevelMap = new HashMap<>();
 		subroutineLevelMap = new HashMap<>();
+	}
+
+	void setClassName(String str) {
+		this.className = str;
 	}
 
 	void startSubroutine() {
@@ -24,7 +26,8 @@ public class SymbolTable {
 	}
 
 	void defineIdentifier(String level, String name, String type, String kind) {
-		Identifier newIdentifier = new Identifier(type, kind, selectIndex(type));
+		Identifier newIdentifier = new Identifier(type, kind, selectIndex(kind));
+		//System.out.println(selectIndex(type));
 
 		if (level.equals("class"))
 			classLevelMap.put(name, newIdentifier);
@@ -54,28 +57,30 @@ public class SymbolTable {
 		if (subroutineLevelMap.containsKey(identifier)){
 			id = subroutineLevelMap.get(identifier);
 		} 	
-		else if(classLevelMap.containsKey(identifier))
-			id = subroutineLevelMap.get(identifier);
+		else if(classLevelMap.containsKey(identifier)){
+			id = classLevelMap.get(identifier);
+		}
 
 		return id;
 	}
 
-	int selectIndex(String type) {
-		int returnValue = 0;
+	int selectIndex(String kind) {
+		int returnValue = -1;
 
-		if(type.equals("field")) {
+		if(kind.equals("field")) {
+			System.out.println("value = "+fieldIndex);
 			returnValue = fieldIndex;
 			fieldIndex++;
 		}
-		else if(type.equals("static")) {			
+		else if(kind.equals("static")) {			
 			returnValue = staticIndex;
 			staticIndex++;
 		}
-		else if(type.equals("argument")) {
+		else if(kind.equals("argument")) {
 			returnValue = argumentIndex;
 			argumentIndex++;
 		}
-		else if(type.equals("local")) {
+		else if(kind.equals("local")) {
 			returnValue = localIndex;
 			localIndex++;
 		}

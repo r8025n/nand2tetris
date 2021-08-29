@@ -12,6 +12,7 @@ public class CompilationEngine extends Tokenizer{
 	boolean isDirectory = false;
 	int currentIndex = 0;
 	SymbolTable symbolTable = null;
+	String type = "", kind = "", level = "", state = "";
 
 	List<String> tokens;
 
@@ -36,6 +37,7 @@ public class CompilationEngine extends Tokenizer{
 		for(File f : fileList){
 			String[] fname=f.getName().split("[.]");
 			if(fname[1].equals("jack")){
+				symbolTable = new SymbolTable();
 				currentIndex = 0;
 				
 				if(isDirectory == false){
@@ -78,6 +80,18 @@ public class CompilationEngine extends Tokenizer{
 			}
 			stringToWrite = "<" + type + ">" + temp + "</" + type + ">\n";
 		}
+		else if(type.equals("identifier") && (level == "class" || level == "sub")) {
+			try {
+				String k = symbolTable.getKind(s);
+				String t = symbolTable.getType(s);
+				int in = symbolTable.getIndex(s);
+				System.out.println("try e dhora khaise");
+				stringToWrite = "<" + type + "-" + k + "-" + t + "-" + in + ">" + s + "</" + type + "-" + k + "-" + t + "-" +  in + ">\n";
+			} catch (NullPointerException e) {
+				System.out.println("catch e dhora khaise");
+				stringToWrite = "<" + "methodCall" + ">" + s + "</" + "methodCall" +">\n";				
+			}
+		}
 		else if (s.equals("<")) {
 			stringToWrite = "<" + type + ">" + "&lt;" + "</" + type + ">\n";
 		}
@@ -104,15 +118,15 @@ public class CompilationEngine extends Tokenizer{
 
 
 	void eat(String s) {
-		String token = tokens.get(currentIndex);
-		currentIndex++;
+		String token = advanceWithoutEating();
 		
 		if (tokenType(s).equals("keyword") || tokenType(s).equals("symbol")){
-			if (s.equals(token)) {
-				writee(token);
-			}
-			else
-				System.out.println(token+"->"+"Your code has error");
+			// if (s.equals(token)) {
+			// 	writee(token);
+			// }
+			// else
+			// 	System.out.println(token+"->"+"Your code has error");
+			writee(s);
 		}
 		else if (tokenType(s).equals(tokenType(token))) {
 			writee(token);
@@ -125,14 +139,11 @@ public class CompilationEngine extends Tokenizer{
 	String advanceWithoutEating() {
 		String token = tokens.get(currentIndex);
 		currentIndex++;
-		// //////
-		// String stringToWrite = "<className>" + token + "</className>\n";
-		// try{
-		// 	out.write(stringToWrite);
-		// } catch (IOException e) {
-		// 	System.out.println("Couldn't write in file");
-		// }
-		// /////
+		return token;
+	}
+
+	String advanceWithoutIncrementing() {
+		String token = tokens.get(currentIndex);
 		return token;
 	}
 
@@ -144,10 +155,9 @@ public class CompilationEngine extends Tokenizer{
 		}
 		eat("class");
 		tempToken = advanceWithoutEating();
-		symbolTable = new SymbolTable(tempToken);
+		symbolTable.setClassName(tempToken);
 		eat("{");
 		compileClassVarDec();
-		
 		while (2 > 1) {
 			String token = tokens.get(currentIndex);
 			
@@ -167,6 +177,7 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void compileClassVarDec() {
+		level = "class";
 		while (2 > 1) {
 			String token = tokens.get(currentIndex);
 			
@@ -176,6 +187,8 @@ public class CompilationEngine extends Tokenizer{
 				break;
 		}
 
+		level = "none";
+
 	} 
 
 	void singleLineClassVar() {
@@ -184,22 +197,20 @@ public class CompilationEngine extends Tokenizer{
 		}catch(IOException e){
 			System.out.println("Couldn't write in file");
 		}
-		String token = tokens.get(currentIndex);
 
-		if(token.equals("static"))
-			eat("static");
-		else
-			eat("field");
+		//state = "defined";
+		kind = advanceWithoutEating();
+		type = advanceWithoutEating();
 
 		while (2 > 1) {
-			token = tokens.get(currentIndex);
+			String token = advanceWithoutEating();
 			
 			if(token.equals(";"))
 				break;
+			if(! token.equals(","))
+				symbolTable.defineIdentifier("class", token, type, kind);
 			writee(token);
-			currentIndex++;
 		}
-		eat(";");
 
 		try{
 			out.write("</classVarDec>\n");
@@ -214,18 +225,18 @@ public class CompilationEngine extends Tokenizer{
 		}catch(IOException e){
 			System.out.println("Couldn't write in file");
 		}
+		symbolTable.startSubroutine();
 		String token = null;
-		token = tokens.get(currentIndex);
-		currentIndex++;
+		token = advanceWithoutEating();
 		writee(token);
-		token = tokens.get(currentIndex);
-		currentIndex++;
+		token = advanceWithoutEating();
 		writee(token);
-		token = tokens.get(currentIndex);
-		currentIndex++;
+		token = advanceWithoutEating();
 		writee(token);
 		eat("(");
-		compileParameterList();
+		level = "sub";
+		if(! advanceWithoutIncrementing().equals(")"))
+			compileParameterList();
 		eat(")");
 		compileSubroutineBody();
 		
@@ -242,15 +253,21 @@ public class CompilationEngine extends Tokenizer{
 		}catch(IOException e){
 			System.out.println("Couldn't write in file");
 		}
-
+		kind = "argument";
+		level = "sub";
+		
 		while (2 > 1) {
-			String token = tokens.get(currentIndex);
-			
-			if(token.equals(")"))
+			if(advanceWithoutIncrementing().equals(")"))
 				break;
-			else
-				writee(token);
-			currentIndex++;
+			if(advanceWithoutIncrementing().equals(","))
+				eat(",");
+			type = advanceWithoutIncrementing();
+			eat(type);
+			//System.out.println(type);
+			String token = advanceWithoutIncrementing();
+			//System.out.println(token);
+			symbolTable.defineIdentifier(level, token, type, kind);
+			eat(token);
 		}
 		
 		try{
@@ -258,6 +275,8 @@ public class CompilationEngine extends Tokenizer{
 		} catch (IOException e) {
 			System.out.println("Couldn't write in file");
 		}
+
+		//level = "none";
 	}
 
 	void compileSubroutineBody() {
@@ -280,7 +299,7 @@ public class CompilationEngine extends Tokenizer{
 
 	void compileVarDec() {
 		while (2 > 1) {
-			String token = tokens.get(currentIndex);
+			String token = advanceWithoutIncrementing();
 			
 			if(token.equals("var"))
 				singleLineVarDec();
@@ -295,16 +314,20 @@ public class CompilationEngine extends Tokenizer{
 		} catch (IOException e) {
 			System.out.println("Couldn't write in file");
 		}
+		level = "sub";
+		kind = "local";
 		eat("var");
-		writee(tokens.get(currentIndex));
-		currentIndex++;
-		eat("abc");
-		String token = tokens.get(currentIndex);
-		
-		while (! token.equals(";")) {
+		type = advanceWithoutIncrementing();
+		eat(type);
+		String token = advanceWithoutIncrementing();
+		symbolTable.defineIdentifier(level, token, type, kind);
+		eat(token);
+
+		while (! advanceWithoutIncrementing().equals(";")) {
 			eat(",");
-			eat("abc");
-			token = tokens.get(currentIndex);
+			token = advanceWithoutEating();
+			symbolTable.defineIdentifier(level, token, type, kind);
+			eat(token);
 		}
 		eat(";");
 		

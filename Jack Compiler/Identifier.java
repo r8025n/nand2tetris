@@ -1,7 +1,7 @@
 public class Identifier {
 	
-	String type;
-	String kind;
+	String type = "";
+	String kind = "";
 	int index;
 
 	Identifier(String type, String kind, int index) {
