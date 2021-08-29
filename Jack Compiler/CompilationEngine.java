@@ -32,6 +32,12 @@ public class CompilationEngine extends Tokenizer{
 		}
 	}
 
+	void toggleState() {
+		if(state.equals("use") || state.equals(""))
+			state = "define";
+		else
+			state = "use";
+	}
 
 	void parser() {
 		for(File f : fileList){
@@ -85,11 +91,12 @@ public class CompilationEngine extends Tokenizer{
 				String k = symbolTable.getKind(s);
 				String t = symbolTable.getType(s);
 				int in = symbolTable.getIndex(s);
-				System.out.println("try e dhora khaise");
-				stringToWrite = "<" + type + "-" + k + "-" + t + "-" + in + ">" + s + "</" + type + "-" + k + "-" + t + "-" +  in + ">\n";
+				stringToWrite = "<" + state + "-" + k + "-" + t + "-" + in + ">" + s + "</" + state + "-" + k + "-" + t + "-" +  in + ">\n";
 			} catch (NullPointerException e) {
-				System.out.println("catch e dhora khaise");
-				stringToWrite = "<" + "methodCall" + ">" + s + "</" + "methodCall" +">\n";				
+				if (s.equals(symbolTable.getClassName()))
+					stringToWrite = "<" + "className" + ">" + s + "</" + "className" +">\n";
+				else	
+					stringToWrite = "<" + "methodCall" + ">" + s + "</" + "methodCall" +">\n";				
 			}
 		}
 		else if (s.equals("<")) {
@@ -178,6 +185,8 @@ public class CompilationEngine extends Tokenizer{
 
 	void compileClassVarDec() {
 		level = "class";
+		toggleState();
+
 		while (2 > 1) {
 			String token = tokens.get(currentIndex);
 			
@@ -188,7 +197,7 @@ public class CompilationEngine extends Tokenizer{
 		}
 
 		level = "none";
-
+		toggleState();
 	} 
 
 	void singleLineClassVar() {
@@ -198,7 +207,6 @@ public class CompilationEngine extends Tokenizer{
 			System.out.println("Couldn't write in file");
 		}
 
-		//state = "defined";
 		kind = advanceWithoutEating();
 		type = advanceWithoutEating();
 
@@ -248,6 +256,8 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void compileParameterList() {
+		toggleState();
+		
 		try{
 			out.write("<parameterList>\n");
 		}catch(IOException e){
@@ -276,7 +286,7 @@ public class CompilationEngine extends Tokenizer{
 			System.out.println("Couldn't write in file");
 		}
 
-		//level = "none";
+		toggleState();
 	}
 
 	void compileSubroutineBody() {
@@ -286,7 +296,9 @@ public class CompilationEngine extends Tokenizer{
 			System.out.println("Couldn't write in file");
 		}
 		eat("{");
+		toggleState();
 		compileVarDec();
+		toggleState();
 		compileStatements();
 		eat("}");
 		

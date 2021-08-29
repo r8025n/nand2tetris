@@ -19,6 +19,10 @@ public class SymbolTable {
 		this.className = str;
 	}
 
+	String getClassName() {
+		return this.className;
+	}
+
 	void startSubroutine() {
 		subroutineLevelMap.clear();
 		defineIdentifier("sub", "this", className, "argument");
