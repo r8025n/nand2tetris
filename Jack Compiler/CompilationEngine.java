@@ -241,6 +241,7 @@ public class CompilationEngine extends Tokenizer{
 			String token = advanceWithoutIncrementing();
 			//System.out.println(token);
 			symbolTable.defineIdentifier(level, token, type, kind);
+
 			eat(token);
 		}
 
@@ -442,7 +443,7 @@ public class CompilationEngine extends Tokenizer{
 				compileExpression();
 				eat("]");
 			}
-			else if ((tempp.equals("~") || (tempp.equals("-")) && tokens.get(currentIndex-1).equals("("))) {
+			else if ((tempp.equals("~") || (tempp.equals("-")) && (tokens.get(currentIndex-1).equals("(") || tokens.get(currentIndex-1).equals(",")))) {
 				compileTerm();
 			}
 			else if(isMathmaticalOp(tempp)) {
@@ -501,7 +502,7 @@ public class CompilationEngine extends Tokenizer{
 		}
 		else if (advanceWithoutIncrementing().equals("true")) {
 			String token = advanceWithoutEating();
-			vmWriter.writePush("constant", 1);
+			vmWriter.writePush("constant", 0);
 			vmWriter.writeLogic("~");
 		}
 		else if(advanceWithoutIncrementing().equals("false") || advanceWithoutIncrementing().equals("null")){
@@ -513,7 +514,7 @@ public class CompilationEngine extends Tokenizer{
 			compileExpression();
 			eat(")");
 		}
-		else if (tokens.get(currentIndex).equals("-") && tokens.get(currentIndex-1).equals("(")) {
+		else if (tokens.get(currentIndex).equals("-") && (tokens.get(currentIndex-1).equals("(") || tokens.get(currentIndex-1).equals(","))) {
 			String op = advanceWithoutEating();
 			compileTerm();
 			vmWriter.writeMisc("neg");

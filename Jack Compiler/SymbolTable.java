@@ -25,6 +25,8 @@ public class SymbolTable {
 
 	void startSubroutine(String subroutineType) {
 		subroutineLevelMap.clear();
+		argumentIndex = 0;
+		localIndex = 0;
 		if(subroutineType == "method")
 			defineIdentifier("sub", "this", className, "argument");
 
@@ -80,7 +82,7 @@ public class SymbolTable {
 		int returnValue = -1;
 
 		if(kind.equals("field")) {
-			System.out.println("value = "+fieldIndex);
+			//System.out.println("value = "+fieldIndex);
 			returnValue = fieldIndex;
 			fieldIndex++;
 		}
