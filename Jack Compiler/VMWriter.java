@@ -57,16 +57,18 @@ public class VMWriter {
 	}
 
 	void writeLabel(String label) {
-		stringToWrite = "label L" + label + "\n";
+		stringToWrite = "label " + label + "\n";
 		write(stringToWrite);
 		System.out.println(stringToWrite);
 	}
 
 	void writeGoto(String state, String label) {
 		if(state.equals("conditional"))
-			stringToWrite = "if-goto" + label + "\n";
+			stringToWrite = "if-goto " + label + "\n";
 		else
-			stringToWrite = "goto" + label + "\n";
+			stringToWrite = "goto " + label + "\n";
+
+		write(stringToWrite);
 
 	}
 

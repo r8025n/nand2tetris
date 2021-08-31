@@ -10,7 +10,7 @@ public class CompilationEngine extends Tokenizer{
 	String outfile = null;
 	String tempToken = null;
 	boolean isDirectory = false, isTypeVoid = false;
-	int currentIndex = 0, localCount = 0, argCount = 0, labelIndex = 0;
+	int currentIndex = 0, localCount = 0, argCount = 0, whileLabelCount = 0, ifLabelCount = 0;
 	SymbolTable symbolTable = null;
 	String type = "", kind = "", level = "", state = "", functionName = "", subroutineType = "";
 	VMWriter vmWriter = null;
@@ -160,12 +160,8 @@ public class CompilationEngine extends Tokenizer{
 
 		while (2 > 1) {
 			String token = advanceWithoutIncrementing();
-			// for(int i=0;i<tokens.size();i++){
-			// 	System.out.println(tokens.get(i));
-			// }
 			
 			if(token.equals("constructor") || token.equals("function") || token.equals("method")){
-				System.out.println(tokens.size());
 				compileSubroutineDec();
 			}
 			else
@@ -187,7 +183,6 @@ public class CompilationEngine extends Tokenizer{
 			else
 				break;
 		}
-
 		level = "none";
 		toggleState();
 	} 
@@ -203,6 +198,7 @@ public class CompilationEngine extends Tokenizer{
 				break;
 			if(! token.equals(","))
 				symbolTable.defineIdentifier("class", token, type, kind);
+
 			writee(token);
 		}
 	}
@@ -217,13 +213,12 @@ public class CompilationEngine extends Tokenizer{
 			isTypeVoid = true;
 		else
 			isTypeVoid = false;
-		//writee(token);
 		String name= advanceWithoutEating();
 		functionName = symbolTable.getClassName() + "." + name;
-		//writee(token);
 		eat("(");
 		level = "sub";
 		if(! advanceWithoutIncrementing().equals(")")){
+			//System.out.println("debug");
 			compileParameterList();
 		}
 		eat(")");
@@ -286,6 +281,7 @@ public class CompilationEngine extends Tokenizer{
 		eat(type);
 		String name = advanceWithoutIncrementing();
 		symbolTable.defineIdentifier(level, name, type, kind);
+		//System.out.println("name =" + name + " - " + symbolTable.getKind(name) +" - "+symbolTable.getType(name));
 		localCount++;
 		eat(name);
 
@@ -293,8 +289,9 @@ public class CompilationEngine extends Tokenizer{
 			eat(",");
 			name = advanceWithoutEating();
 			symbolTable.defineIdentifier(level, name, type, kind);
+			// System.out.println("name =" + name + " - " + symbolTable.getKind(name) +" - "+symbolTable.getType(name));
 			localCount++;
-			eat(name);
+			//eat(name);
 		}
 		eat(";");
 	}
@@ -302,7 +299,6 @@ public class CompilationEngine extends Tokenizer{
 	void compileStatements() {
 		while (2 != 1){
 			String token=tokens.get(currentIndex);
-
 			if (token.equals("if"))
 				compileIf();
 			else if (token.equals("while"))
@@ -343,17 +339,16 @@ public class CompilationEngine extends Tokenizer{
 			vmWriter.writePop("that", 0);
 		}
 		else{
-			//vmWriter.writePush("temp", 0);
 			vmWriter.writePop(symbolTable.getKind(leftSide), symbolTable.getIndex(leftSide));
 		}
 		eat(";");
 	}
 
 	void compileIf() {
-		String label_1 = "L" + labelIndex;
-		labelIndex++;
-		String label_2 = "L" + labelIndex;
-		labelIndex++;
+		String label_1 = "if_" + ifLabelCount;
+		ifLabelCount++;
+		String label_2 = "if_" + ifLabelCount;
+		ifLabelCount++;
 		eat("if");
 		eat("(");
 		compileExpression();
@@ -376,10 +371,10 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void compileWhile() {
-		String label_1 = "L" + labelIndex;
-		labelIndex++;
-		String label_2 = "L" + labelIndex;
-		labelIndex++;
+		String label_1 = "while_" + whileLabelCount;
+		whileLabelCount++;
+		String label_2 = "while_" + whileLabelCount;
+		whileLabelCount++;
 		vmWriter.writeLabel(label_1);
 		eat("while");
 		eat("(");
@@ -397,12 +392,12 @@ public class CompilationEngine extends Tokenizer{
 	void compileDo() {
 		eat("do");
 		String methodCall = advanceWithoutEating();
-		// System.out.println(methodCall);
+		//System.out.println(methodCall);
 		String temp = advanceWithoutIncrementing();
 		String obj = "", method = "";
 
 		if (temp.equals(".")) {
-			if(! tokenType(methodCall).equals("keyword")){	
+			if(! (tokenType(methodCall).equals("keyword") || methodCall.equals(symbolTable.getClassName()))){	
 				eat(".");
 				obj = methodCall;
 				methodCall = advanceWithoutEating();
@@ -484,17 +479,34 @@ public class CompilationEngine extends Tokenizer{
 			obj = advanceWithoutEating();
 			eat(".");
 			methodCall = advanceWithoutEating();
-			vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj)); //pushing object as the first argument
-			eat("(");
-			compileExpressionList();
-			eat(")");
-			vmWriter.writeCall(methodCall, argCount + 1);
-			//argCount = 0;
+			if(tokenType(obj).equals("keyword") || obj.equals(symbolTable.getClassName())){
+				methodCall = obj + "." + methodCall;
+				eat("(");
+				compileExpressionList();
+				eat(")");
+				vmWriter.writeCall(methodCall, argCount);
+			}
+			else{
+				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj)); //pushing object as the first argument
+				eat("(");
+				compileExpressionList();
+				eat(")");
+				vmWriter.writeCall(methodCall, argCount + 1);
+			}	
 		}
 		else if (advanceWithoutIncrementing().equals("~")) {
 			String op = advanceWithoutEating();
 			compileTerm();
 			vmWriter.writeLogic("~");
+		}
+		else if (advanceWithoutIncrementing().equals("true")) {
+			String token = advanceWithoutEating();
+			vmWriter.writePush("constant", 1);
+			vmWriter.writeLogic("~");
+		}
+		else if(advanceWithoutIncrementing().equals("false") || advanceWithoutIncrementing().equals("null")){
+			String token = advanceWithoutEating();
+			vmWriter.writePush("constant", 0);
 		}
 		else if (tokens.get(currentIndex).equals("(")) {
 			eat("(");
@@ -517,6 +529,7 @@ public class CompilationEngine extends Tokenizer{
 				}
 			}
 			else if(tokenType(tokens.get(currentIndex)).equals("integerConstant")){
+				//System.out.println(methodCall);
 				int intVal = Integer.parseInt(advanceWithoutEating());
 				vmWriter.writePush("constant", intVal);
 			}
@@ -530,26 +543,47 @@ public class CompilationEngine extends Tokenizer{
 		}
 	}
 
+	// void compileExpressionList() {
+	// 	argCount = 0;
+
+	// 	while (2 != 1) {
+	// 		String token = advanceWithoutIncrementing();
+
+	// 		if (! token.equals(")")) {
+	// 			argCount++;
+	// 			//System.out.println("argCount = " +argCount);
+	// 			compileExpression();
+				
+	// 			if (! tokens.get(currentIndex).equals(")")){
+	// 				argCount++;
+	// 				//System.out.println("argCount = " +argCount);
+	// 				eat(",");
+	// 			}
+	// 		}
+	// 		else
+	// 			break;
+	// 	}
+	// }
+
 	void compileExpressionList() {
 		argCount = 0;
+		String token = advanceWithoutIncrementing();
 
-		while (2 != 1) {
-			String token = advanceWithoutIncrementing();
-
-			if (! token.equals(")")) {
-				argCount++;
-				//System.out.println("argCount = " +argCount);
-				compileExpression();
-				
-				if (! tokens.get(currentIndex).equals(")")){
-					argCount++;
-					//System.out.println("argCount = " +argCount);
+		if(!token.equals(")")){
+			argCount++;
+			compileExpression();
+			while(2 != 1){
+				token = advanceWithoutIncrementing();
+				if(!token.equals(")")){
 					eat(",");
+					argCount++;
+					compileExpression();
 				}
+				else
+					break;
 			}
-			else
-				break;
 		}
+		
 	}
 
 	boolean isMathmaticalOp(String token) {

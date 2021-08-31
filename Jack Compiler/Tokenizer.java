@@ -8,7 +8,7 @@ public class Tokenizer {
 
 	final static String[] keywords = {"class", "constructor", "function", "method", "field", "static", 
 						"var", "int", "char", "boolean", "void", "true","false", "null", 
-						"this", "let", "do", "if", "else", "while", "return", "Output"};
+						"this", "let", "do", "if", "else", "while", "return", "Output", "Memory", "String", "Math"};
 
 	final static String[] symbols = {"[", "]", "(", ")", "{", "}", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", ".", "~"};
 	
@@ -42,7 +42,6 @@ public class Tokenizer {
 				if(isStartingComment(newString))
 					continue;
 				else {
-					System.out.println(newString.trim() +"---"+newString.charAt(0));
 					scanner2 = new Scanner(newString);
 					
 					while (scanner2.hasNext()) {
@@ -123,15 +122,10 @@ public class Tokenizer {
 
 	boolean isStartingComment(String str) {
 		String trimmedStr = str.trim();
-		//System.out.println(trimmedStr);
-		char char1;
-		try{
-			char1 = trimmedStr.charAt(0);
-			if(char1 == '/' || char1 == '*')
+		char char1 = trimmedStr.charAt(0);
+
+		if(char1 == '/' || char1 == '*')
 			return true;
-		} catch(ArrayIndexOutOfBoundsException e) {
-			System.out.println(trimmedStr);
-		}
 
 		return false;
 	}
