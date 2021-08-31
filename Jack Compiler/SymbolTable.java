@@ -23,9 +23,10 @@ public class SymbolTable {
 		return this.className;
 	}
 
-	void startSubroutine() {
+	void startSubroutine(String subroutineType) {
 		subroutineLevelMap.clear();
-		defineIdentifier("sub", "this", className, "argument");
+		if(subroutineType == "method")
+			defineIdentifier("sub", "this", className, "argument");
 
 	}
 
@@ -39,8 +40,15 @@ public class SymbolTable {
 			subroutineLevelMap.put(name, newIdentifier);
 	}
 
-	int varCount() {
-		return (fieldIndex + staticIndex + argumentIndex + localIndex );
+	int varCount(String kind) {
+		if(kind.equals("field"))
+			return fieldIndex;
+		else if(kind.equals("static"))
+			return staticIndex;
+		else if(kind.equals("argument"))
+			return argumentIndex;
+		else
+			return localIndex;
 	}
 
 	String getType(String identifier) {

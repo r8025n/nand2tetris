@@ -9,15 +9,16 @@ public class CompilationEngine extends Tokenizer{
 	BufferedWriter out = null;
 	String outfile = null;
 	String tempToken = null;
-	boolean isDirectory = false;
-	int currentIndex = 0;
+	boolean isDirectory = false, isTypeVoid = false;
+	int currentIndex = 0, localCount = 0, argCount = 0, labelIndex = 0;
 	SymbolTable symbolTable = null;
-	String type = "", kind = "", level = "", state = "";
-
+	String type = "", kind = "", level = "", state = "", functionName = "", subroutineType = "";
+	VMWriter vmWriter = null;
 	List<String> tokens;
 
 	CompilationEngine(String fileName) {
 		File dirpath=new File(fileName);
+		vmWriter = new VMWriter();
 
 		if(! dirpath.isDirectory()){
 			fileList = new File[1];
@@ -47,16 +48,17 @@ public class CompilationEngine extends Tokenizer{
 				currentIndex = 0;
 				
 				if(isDirectory == false){
-					outfile=outname[0] + ".xml";
+					outfile=outname[0] + ".vm";
 				}
 				else{
-					outfile=outname[0] + "/" + fname[0] + ".xml";
+					outfile=outname[0] + "/" + fname[0] + ".vm";
 				}
 				
 				//output file
 				try{
 					FileWriter fileout=new FileWriter(outfile);
 					out = new BufferedWriter(fileout);
+					vmWriter.setBufferedWriter(out);
 				}catch(IOException k){
 					System.out.println(outfile + " ->Couldn't open the output file");
 				}
@@ -128,15 +130,10 @@ public class CompilationEngine extends Tokenizer{
 		String token = advanceWithoutEating();
 		
 		if (tokenType(s).equals("keyword") || tokenType(s).equals("symbol")){
-			// if (s.equals(token)) {
-			// 	writee(token);
-			// }
-			// else
-			// 	System.out.println(token+"->"+"Your code has error");
-			writee(s);
+			//writee(s);
 		}
 		else if (tokenType(s).equals(tokenType(token))) {
-			writee(token);
+			//writee(token);
 		}
 		else {
 			System.out.println(token+"->"+"Your code has error");
@@ -155,32 +152,27 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void compileClass() {
-		try{
-			out.write("<class>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		eat("class");
 		tempToken = advanceWithoutEating();
 		symbolTable.setClassName(tempToken);
 		eat("{");
 		compileClassVarDec();
+
 		while (2 > 1) {
-			String token = tokens.get(currentIndex);
+			String token = advanceWithoutIncrementing();
+			// for(int i=0;i<tokens.size();i++){
+			// 	System.out.println(tokens.get(i));
+			// }
 			
-			if(token.equals("constructor") || token.equals("function") || token.equals("method"))
+			if(token.equals("constructor") || token.equals("function") || token.equals("method")){
+				System.out.println(tokens.size());
 				compileSubroutineDec();
+			}
 			else
 				break;
 		}
 		
 		eat("}");
-		
-		try{
-			out.write("</class>\n");
-		} catch (IOException e){
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileClassVarDec() {
@@ -201,12 +193,6 @@ public class CompilationEngine extends Tokenizer{
 	} 
 
 	void singleLineClassVar() {
-		try{
-			out.write("<classVarDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
-
 		kind = advanceWithoutEating();
 		type = advanceWithoutEating();
 
@@ -219,50 +205,33 @@ public class CompilationEngine extends Tokenizer{
 				symbolTable.defineIdentifier("class", token, type, kind);
 			writee(token);
 		}
-
-		try{
-			out.write("</classVarDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileSubroutineDec() {
-		try{
-			out.write("<subroutineDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
-		symbolTable.startSubroutine();
 		String token = null;
-		token = advanceWithoutEating();
-		writee(token);
-		token = advanceWithoutEating();
-		writee(token);
-		token = advanceWithoutEating();
-		writee(token);
+		subroutineType = advanceWithoutEating();
+		symbolTable.startSubroutine(subroutineType);
+		String returnType = advanceWithoutEating();
+		
+		if(returnType.equals("void"))
+			isTypeVoid = true;
+		else
+			isTypeVoid = false;
+		//writee(token);
+		String name= advanceWithoutEating();
+		functionName = symbolTable.getClassName() + "." + name;
+		//writee(token);
 		eat("(");
 		level = "sub";
-		if(! advanceWithoutIncrementing().equals(")"))
+		if(! advanceWithoutIncrementing().equals(")")){
 			compileParameterList();
+		}
 		eat(")");
 		compileSubroutineBody();
-		
-		try{
-			out.write("</subroutineDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileParameterList() {
 		toggleState();
-		
-		try{
-			out.write("<parameterList>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
 		kind = "argument";
 		level = "sub";
 		
@@ -279,37 +248,26 @@ public class CompilationEngine extends Tokenizer{
 			symbolTable.defineIdentifier(level, token, type, kind);
 			eat(token);
 		}
-		
-		try{
-			out.write("</parameterList>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 
 		toggleState();
 	}
 
 	void compileSubroutineBody() {
-		try{
-			out.write("<subroutineBody>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		eat("{");
 		toggleState();
 		compileVarDec();
+		vmWriter.writeFunction(functionName, localCount);
 		toggleState();
 		compileStatements();
 		eat("}");
-		
-		try{
-			out.write("</subroutineBody>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		if(isTypeVoid)
+			vmWriter.writePush("constant", 0);
+
+		vmWriter.writeReturn();
 	}
 
 	void compileVarDec() {
+		localCount = 0;
 		while (2 > 1) {
 			String token = advanceWithoutIncrementing();
 			
@@ -321,41 +279,27 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void singleLineVarDec() {
-		try{
-			out.write("<varDec>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		level = "sub";
 		kind = "local";
 		eat("var");
 		type = advanceWithoutIncrementing();
 		eat(type);
-		String token = advanceWithoutIncrementing();
-		symbolTable.defineIdentifier(level, token, type, kind);
-		eat(token);
+		String name = advanceWithoutIncrementing();
+		symbolTable.defineIdentifier(level, name, type, kind);
+		localCount++;
+		eat(name);
 
 		while (! advanceWithoutIncrementing().equals(";")) {
 			eat(",");
-			token = advanceWithoutEating();
-			symbolTable.defineIdentifier(level, token, type, kind);
-			eat(token);
+			name = advanceWithoutEating();
+			symbolTable.defineIdentifier(level, name, type, kind);
+			localCount++;
+			eat(name);
 		}
 		eat(";");
-		
-		try{
-			out.write("</varDec>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileStatements() {
-		try{
-			out.write("<statements>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		while (2 != 1){
 			String token=tokens.get(currentIndex);
 
@@ -372,167 +316,151 @@ public class CompilationEngine extends Tokenizer{
 			else
 				break;
 		}
-		
-		try{
-			out.write("</statements>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileLet() {
-		try{
-			out.write("<letStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		boolean isLeftSideArray = false;
 		eat("let");
-		eat("abc");
+		String leftSide = advanceWithoutEating();
 		
-		if (tokens.get(currentIndex).equals("[")){
+		// if it is an array
+		if (advanceWithoutIncrementing().equals("[")){
+			isLeftSideArray = true;
+			vmWriter.writePush(symbolTable.getKind(leftSide), symbolTable.getIndex(leftSide)); //pushes the array base to stack
 			eat("[");
 			compileExpression();
 			eat("]");
+			//vmWriter.writePush("temp", 0);
+			vmWriter.writeArithmatic("+"); //adds calculated expression with array base
 		}
 		eat("=");
 		compileExpression();
-		eat(";");
-		try{
-			out.write("</letStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
+
+		if (isLeftSideArray) {
+			vmWriter.writePop("temp", 0);
+			vmWriter.writePop("pointer", 1); //store the summed value to THAT
+			vmWriter.writePush("temp", 0);
+			vmWriter.writePop("that", 0);
 		}
+		else{
+			//vmWriter.writePush("temp", 0);
+			vmWriter.writePop(symbolTable.getKind(leftSide), symbolTable.getIndex(leftSide));
+		}
+		eat(";");
 	}
 
 	void compileIf() {
-		try{
-			out.write("<ifStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		String label_1 = "L" + labelIndex;
+		labelIndex++;
+		String label_2 = "L" + labelIndex;
+		labelIndex++;
 		eat("if");
 		eat("(");
 		compileExpression();
+		vmWriter.writeLogic("~");
+		vmWriter.writeGoto("conditional", label_1);
 		eat(")");
 		eat("{");
 		compileStatements();
+		vmWriter.writeGoto("unconditional", label_2);
 		eat("}");
+		vmWriter.writeLabel(label_1);
 		
-		if (tokens.get(currentIndex).equals("else")) {
+		if (advanceWithoutIncrementing().equals("else")) {
 			eat("else");
 			eat("{");
 			compileStatements();
 			eat("}");
 		}
-		
-		try{
-			out.write("</ifStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		vmWriter.writeLabel(label_2);
 	}
 
 	void compileWhile() {
-		try{
-			out.write("<whileStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		String label_1 = "L" + labelIndex;
+		labelIndex++;
+		String label_2 = "L" + labelIndex;
+		labelIndex++;
+		vmWriter.writeLabel(label_1);
 		eat("while");
 		eat("(");
 		compileExpression();
+		vmWriter.writeLogic("~");
+		vmWriter.writeGoto("conditional", label_2);
 		eat(")");
 		eat("{");
 		compileStatements();
 		eat("}");
-		
-		try{
-			out.write("</whileStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		vmWriter.writeGoto("unconditional", label_1);
+		vmWriter.writeLabel(label_2);
 	}
 
 	void compileDo() {
-		try{
-			out.write("<doStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		eat("do");
-		eat("abc");
-		String temp=tokens.get(currentIndex);
-		
+		String methodCall = advanceWithoutEating();
+		// System.out.println(methodCall);
+		String temp = advanceWithoutIncrementing();
+		String obj = "", method = "";
+
 		if (temp.equals(".")) {
-			eat(".");
-			eat("abc");
+			if(! tokenType(methodCall).equals("keyword")){	
+				eat(".");
+				obj = methodCall;
+				methodCall = advanceWithoutEating();
+				argCount++;
+				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
+			}
+			else{
+				eat(".");
+				methodCall = methodCall + "." + advanceWithoutEating();
+			}
 		}
 
 		eat("(");
 		compileExpressionList();
 		eat(")");
 		eat(";");
-		
-		try{
-			out.write("</doStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+
+		vmWriter.writeCall(methodCall, argCount);
+		vmWriter.writePop("temp", 0);
 	}
 
 	void compileReturn() {
-		try{
-			out.write("<returnStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		eat("return");
 		
-		if (! tokens.get(currentIndex).equals(";"))
+		if (! advanceWithoutIncrementing().equals(";"))
 			compileExpression();
 		eat(";");
-		
-		try{
-			out.write("</returnStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileExpression() {
-		try{
-			out.write("<expression>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
-
-		String tempp = tokens.get(currentIndex);
+		String tempp = advanceWithoutIncrementing();
+		String op = "";
 
 		while ( ! (tempp.equals(";") || tempp.equals("]") || tempp.equals(")") || tempp.equals("}") || tempp.equals(",") )) {
 			if (tempp.equals("(")) {
-				try{
-					out.write("<term>\n");
-				} catch (IOException e) {
-					System.out.println("Couldn't write in file");
-				}
-
 				eat("(");
 				compileExpression();
 				eat(")");
-
-				try{
-					out.write("</term>\n");
-				} catch (IOException e) {
-					System.out.println("Couldn't write in file");
-				}
 			}
 			else if (tempp.equals("[")) {
 				eat("[");
 				compileExpression();
 				eat("]");
 			}
-			else if (tempp.equals("~") || (tempp.equals("-") && tokens.get(currentIndex-1).equals("("))) {
+			else if ((tempp.equals("~") || (tempp.equals("-")) && tokens.get(currentIndex-1).equals("("))) {
 				compileTerm();
+			}
+			else if(isMathmaticalOp(tempp)) {
+				op = tempp;
+				currentIndex++;
+				compileTerm();
+				vmWriter.writeArithmatic(op);
+			}
+			else if(isLogicalOp(tempp)) {
+				op = tempp;
+				currentIndex++;
+				compileTerm();
+				vmWriter.writeLogic(op);
 			}
 			else {
 				if (tokenType(tempp).equals("identifier") || tokenType(tempp).equals("integerConstant") || tokenType(tempp).equals("stringConstant") || tokenType(tempp).equals("keyword")){
@@ -543,35 +471,30 @@ public class CompilationEngine extends Tokenizer{
 					currentIndex++;
 				}
 			}
-			tempp = tokens.get(currentIndex);
-
-		}
-		try{
-			out.write("</expression>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
+			tempp = advanceWithoutIncrementing();
 		}
 	}
 
 	void compileTerm() {
-		try{
-			out.write("<term>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 		int k = currentIndex+1;
-		
+		//argCount = 0;
+		String methodCall = "", obj = "";
+
 		if (tokens.get(k).equals(".")) {
-			eat("abc");
+			obj = advanceWithoutEating();
 			eat(".");
-			eat("abc");
+			methodCall = advanceWithoutEating();
+			vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj)); //pushing object as the first argument
 			eat("(");
 			compileExpressionList();
 			eat(")");
+			vmWriter.writeCall(methodCall, argCount + 1);
+			//argCount = 0;
 		}
-		else if (tokens.get(currentIndex).equals("~")) {
-			eat("~");
+		else if (advanceWithoutIncrementing().equals("~")) {
+			String op = advanceWithoutEating();
 			compileTerm();
+			vmWriter.writeLogic("~");
 		}
 		else if (tokens.get(currentIndex).equals("(")) {
 			eat("(");
@@ -579,54 +502,75 @@ public class CompilationEngine extends Tokenizer{
 			eat(")");
 		}
 		else if (tokens.get(currentIndex).equals("-") && tokens.get(currentIndex-1).equals("(")) {
-			eat("-");
+			String op = advanceWithoutEating();
 			compileTerm();
+			vmWriter.writeMisc("neg");
 		}
 		else {
 			if (tokenType(tokens.get(currentIndex)).equals("identifier")) {
-				eat("abc");
-				
+				String var = advanceWithoutEating();
+				vmWriter.writePush(symbolTable.getKind(var), symbolTable.getIndex(var));
 				if (tokens.get(currentIndex).equals("[")) {
 					eat("[");
 					compileExpression();
 					eat("]");
 				}
 			}
+			else if(tokenType(tokens.get(currentIndex)).equals("integerConstant")){
+				int intVal = Integer.parseInt(advanceWithoutEating());
+				vmWriter.writePush("constant", intVal);
+			}
+			else if(tokenType(tokens.get(currentIndex)).equals("stringConstant")) {
+				
+			}
 			else {
 				writee(tokens.get(currentIndex));
 				currentIndex++;
 			}
 		}
-		try{
-			out.write("</term>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
 	}
 
 	void compileExpressionList() {
-		try{
-			out.write("<expressionList>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		argCount = 0;
 
 		while (2 != 1) {
-			String token=tokens.get(currentIndex);
-			
+			String token = advanceWithoutIncrementing();
+
 			if (! token.equals(")")) {
+				argCount++;
+				//System.out.println("argCount = " +argCount);
 				compileExpression();
 				
-				if (! tokens.get(currentIndex).equals(")"))
+				if (! tokens.get(currentIndex).equals(")")){
+					argCount++;
+					//System.out.println("argCount = " +argCount);
 					eat(",");
+				}
 			}
 			else
 				break;
 		}
-		try{
-			out.write("</expressionList>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
+	}
+
+	boolean isMathmaticalOp(String token) {
+		String[] ops = {"+", "-", "*", "/"};
+	
+		for(int i = 0; i < 4; i++){
+			if(token.equals(ops[i]))
+				return true;
 		}
+
+		return false;
+	}
+
+	boolean isLogicalOp(String token) {
+		String[] ops = {"<", ">", "&", "|", "="};
+		
+		for(int i = 0; i < 5; i++){
+			if(token.equals(ops[i]))
+				return true;
+		}
+
+		return false;
 	}
 }

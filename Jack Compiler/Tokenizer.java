@@ -8,7 +8,7 @@ public class Tokenizer {
 
 	final static String[] keywords = {"class", "constructor", "function", "method", "field", "static", 
 						"var", "int", "char", "boolean", "void", "true","false", "null", 
-						"this", "let", "do", "if", "else", "while", "return"};
+						"this", "let", "do", "if", "else", "while", "return", "Output"};
 
 	final static String[] symbols = {"[", "]", "(", ")", "{", "}", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", ".", "~"};
 	
@@ -42,6 +42,7 @@ public class Tokenizer {
 				if(isStartingComment(newString))
 					continue;
 				else {
+					System.out.println(newString.trim() +"---"+newString.charAt(0));
 					scanner2 = new Scanner(newString);
 					
 					while (scanner2.hasNext()) {
@@ -96,24 +97,41 @@ public class Tokenizer {
 	}
 
 	boolean isEmptyLine(String str) {
-		if (str.equals(""))
+		if (str.trim().equals(""))
 			return true;
 
 		return false;
 	}
 
-	boolean isStartingComment(String str) {
-		char char1 = str.charAt(0);
-		char char2;
+	// boolean isStartingComment(String str) {
+	// 	String trimmedStr = str.trim();
+	// 	char char1 = trimmedStr.charAt(0);
+	// 	char /*char1=null,*/ char2;
 		
-		try {
-			char2 = str.charAt(1);
-		}catch (StringIndexOutOfBoundsException s) {
-			char2 = ' ';
-		}
+	// 	try {
+	// 		char1 = trimmedStr.charAt(0);
+	// 		char2 = trimmedStr.charAt(1);
+	// 	}catch (StringIndexOutOfBoundsException s) {
+	// 		char2 = ' ';
+	// 	}
 
-		if (char1 == '/' || (char1 == ' ' && char2 == '*'))
+	// 	if (char1 == '/' || char1 == '*' || (char1 == ' ' && char2 == '*'))
+	// 		return true;
+
+	// 	return false;
+	// }
+
+	boolean isStartingComment(String str) {
+		String trimmedStr = str.trim();
+		//System.out.println(trimmedStr);
+		char char1;
+		try{
+			char1 = trimmedStr.charAt(0);
+			if(char1 == '/' || char1 == '*')
 			return true;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			System.out.println(trimmedStr);
+		}
 
 		return false;
 	}
