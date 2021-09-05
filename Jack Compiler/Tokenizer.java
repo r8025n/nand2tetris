@@ -63,20 +63,23 @@ public class Tokenizer {
 							if (splittedToken[i].equals("\"") && stringTypeToken == false) {
 								// start of a string
 								stringTypeToken = true;
-								tempString += splittedToken[i];
-								tempString += " ";
+								// tempString += splittedToken[i];
+								// tempString += " ";
+								// System.out.println(tempString);
 							}
 							else if (splittedToken[i].equals("\"") && stringTypeToken == true) {
 								// ending of the string
-								tempString += splittedToken[i];
-								stringTypeToken = false;
+								tempString = "\"" + tempString + "\"";
 								tokenList.add(tempString);
+								//System.out.println(tempString);
 								tempString = "";
+								stringTypeToken = false;
 							}
 							else if (stringTypeToken == true){
 								// middle of the string
 								tempString += splittedToken[i];
 								tempString += " ";
+								//System.out.println(tempString);
 							}
 							else {
 								tokenList.add(splittedToken[i]);

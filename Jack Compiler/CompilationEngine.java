@@ -464,10 +464,14 @@ public class CompilationEngine extends Tokenizer{
 				compileExpression();
 				eat(")");
 			}
-			else if (tempp.equals("[")) {
-				eat("[");
-				compileExpression();
-				eat("]");
+			else if (tokenType(tempp).equals("identifier") && tokens.get(currentIndex+1).equals("[")) {
+				// eat("[");
+				// compileExpression();
+				// eat("]");
+				compileTerm();
+				// vmWriter.writeArithmatic("+");
+				// vmWriter.writePop("pointer", 1);
+				// vmWriter.writePush("that", 0);
 			}
 			else if ((tempp.equals("~") || (tempp.equals("-")) && (tokens.get(currentIndex-1).equals("(") || tokens.get(currentIndex-1).equals(",")))) {
 				compileTerm();
@@ -552,6 +556,9 @@ public class CompilationEngine extends Tokenizer{
 					eat("[");
 					compileExpression();
 					eat("]");
+					vmWriter.writeMisc("add");
+					vmWriter.writePop("pointer", 1);
+					vmWriter.writePush("that", 0);
 				}
 			}
 			else if(tokenType(tokens.get(currentIndex)).equals("integerConstant")){
@@ -562,7 +569,9 @@ public class CompilationEngine extends Tokenizer{
 			else if(tokenType(tokens.get(currentIndex)).equals("stringConstant")) {
 				//System.out.println(tokens.get(currentIndex));
 				String temp = advanceWithoutEating();
+				//System.out.println(temp);
 				String stringToken = temp.substring(1, temp.length()-1);
+				//System.out.println(stringToken);
 				int len = stringToken.length();
 				vmWriter.writePush("constant", len);
 				vmWriter.writeCall("String.new", 1);
