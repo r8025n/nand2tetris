@@ -81,7 +81,7 @@ public class SymbolTable {
 	int selectIndex(String kind) {
 		int returnValue = -1;
 
-		if(kind.equals("field")) {
+		if(kind.equals("this")) {
 			//System.out.println("value = "+fieldIndex);
 			returnValue = fieldIndex;
 			fieldIndex++;

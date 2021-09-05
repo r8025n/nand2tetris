@@ -89,17 +89,17 @@ public class CompilationEngine extends Tokenizer{
 			stringToWrite = "<" + type + ">" + temp + "</" + type + ">\n";
 		}
 		else if(type.equals("identifier") && (level == "class" || level == "sub")) {
-			try {
-				String k = symbolTable.getKind(s);
-				String t = symbolTable.getType(s);
-				int in = symbolTable.getIndex(s);
-				stringToWrite = "<" + state + "-" + k + "-" + t + "-" + in + ">" + s + "</" + state + "-" + k + "-" + t + "-" +  in + ">\n";
-			} catch (NullPointerException e) {
-				if (s.equals(symbolTable.getClassName()))
-					stringToWrite = "<" + "className" + ">" + s + "</" + "className" +">\n";
-				else	
-					stringToWrite = "<" + "methodCall" + ">" + s + "</" + "methodCall" +">\n";				
-			}
+			// try {
+			// 	String k = symbolTable.getKind(s);
+			// 	String t = symbolTable.getType(s);
+			// 	int in = symbolTable.getIndex(s);
+			// 	stringToWrite = "<" + state + "-" + k + "-" + t + "-" + in + ">" + s + "</" + state + "-" + k + "-" + t + "-" +  in + ">\n";
+			// } catch (NullPointerException e) {
+			// 	if (s.equals(symbolTable.getClassName()))
+			// 		stringToWrite = "<" + "className" + ">" + s + "</" + "className" +">\n";
+			// 	else	
+			// 		stringToWrite = "<" + "methodCall" + ">" + s + "</" + "methodCall" +">\n";				
+			// }
 		}
 		else if (s.equals("<")) {
 			stringToWrite = "<" + type + ">" + "&lt;" + "</" + type + ">\n";
@@ -117,11 +117,11 @@ public class CompilationEngine extends Tokenizer{
 			stringToWrite = "<" + type + ">" + s + "</" + type + ">\n";
 		}
 
-		try{
-			out.write(stringToWrite);
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}	
+		// try{
+		// 	out.write(stringToWrite);
+		// } catch (IOException e) {
+		// 	System.out.println("Couldn't write in file");
+		// }	
 	}
 
 
@@ -191,15 +191,18 @@ public class CompilationEngine extends Tokenizer{
 		kind = advanceWithoutEating();
 		type = advanceWithoutEating();
 
-		while (2 > 1) {
-			String token = advanceWithoutEating();
-			
-			if(token.equals(";"))
-				break;
-			if(! token.equals(","))
-				symbolTable.defineIdentifier("class", token, type, kind);
+		if(kind.equals("field"))
+			kind = "this";
 
-			writee(token);
+		while (2 > 1) {
+			String varName = advanceWithoutEating();
+			
+			if(varName.equals(";"))
+				break;
+			if(! varName.equals(","))
+				symbolTable.defineIdentifier("class", varName, type, kind);
+
+			//writee(varName);
 		}
 	}
 
@@ -217,6 +220,7 @@ public class CompilationEngine extends Tokenizer{
 		functionName = symbolTable.getClassName() + "." + name;
 		eat("(");
 		level = "sub";
+
 		if(! advanceWithoutIncrementing().equals(")")){
 			//System.out.println("debug");
 			compileParameterList();
@@ -253,6 +257,12 @@ public class CompilationEngine extends Tokenizer{
 		toggleState();
 		compileVarDec();
 		vmWriter.writeFunction(functionName, localCount);
+
+		if(subroutineType.equals("constructor")) {
+			vmWriter.writePush("constant", symbolTable.varCount("field"));
+			vmWriter.writeCall("Memory.alloc", 1);
+			vmWriter.writePop("pointer", 0);
+		}
 		toggleState();
 		compileStatements();
 		eat("}");
@@ -290,7 +300,7 @@ public class CompilationEngine extends Tokenizer{
 			eat(",");
 			name = advanceWithoutEating();
 			symbolTable.defineIdentifier(level, name, type, kind);
-			// System.out.println("name =" + name + " - " + symbolTable.getKind(name) +" - "+symbolTable.getType(name));
+			//System.out.println("name =" + name + " - " + symbolTable.getKind(name) +" - "+symbolTable.getType(name));
 			localCount++;
 			//eat(name);
 		}
@@ -332,7 +342,7 @@ public class CompilationEngine extends Tokenizer{
 		}
 		eat("=");
 		compileExpression();
-
+		//System.out.println("debug");
 		if (isLeftSideArray) {
 			vmWriter.writePop("temp", 0);
 			vmWriter.writePop("pointer", 1); //store the summed value to THAT
@@ -391,32 +401,34 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void compileDo() {
+		int argCountIncrement = 0;
 		eat("do");
-		String methodCall = advanceWithoutEating();
-		//System.out.println(methodCall);
+		String obj = advanceWithoutEating();
+		String methodCall = obj;
 		String temp = advanceWithoutIncrementing();
-		String obj = "", method = "";
+		String method = "";
 
 		if (temp.equals(".")) {
-			if(! (tokenType(methodCall).equals("keyword") || methodCall.equals(symbolTable.getClassName()))){	
+			//if(! (tokenType(methodCall).equals("keyword") || methodCall.equals(symbolTable.getClassName()))){	
+			if(symbolTable.searchIdentifier(obj) != null){
 				eat(".");
-				obj = methodCall;
-				methodCall = advanceWithoutEating();
-				argCount++;
+				//obj = methodCall;
+				method = advanceWithoutEating();
+				methodCall = symbolTable.getType(obj) + "." + method;
+				argCountIncrement++;
+				//System.out.println("obay di dhuki laisi "+ obj);
 				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
 			}
 			else{
 				eat(".");
-				methodCall = methodCall + "." + advanceWithoutEating();
+				methodCall = obj + "." + advanceWithoutEating();
 			}
 		}
-
 		eat("(");
 		compileExpressionList();
 		eat(")");
 		eat(";");
-
-		vmWriter.writeCall(methodCall, argCount);
+		vmWriter.writeCall(methodCall, argCount + argCountIncrement);
 		vmWriter.writePop("temp", 0);
 	}
 
@@ -474,25 +486,39 @@ public class CompilationEngine extends Tokenizer{
 	void compileTerm() {
 		int k = currentIndex+1;
 		//argCount = 0;
-		String methodCall = "", obj = "";
+		String method = "", obj = "";
 
 		if (tokens.get(k).equals(".")) {
 			obj = advanceWithoutEating();
 			eat(".");
-			methodCall = advanceWithoutEating();
-			if(tokenType(obj).equals("keyword") || obj.equals(symbolTable.getClassName())){
-				methodCall = obj + "." + methodCall;
-				eat("(");
-				compileExpressionList();
-				eat(")");
+			method = advanceWithoutEating();
+			// if(tokenType(obj).equals("keyword") || obj.equals(symbolTable.getClassName())){
+			// 	methodCall = obj + "." + methodCall;
+			// 	eat("(");
+			// 	compileExpressionList();
+			// 	eat(")");
+			// 	vmWriter.writeCall(methodCall, argCount);
+			// }
+			// else{
+			// 	vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj)); //pushing object as the first argument
+			// 	eat("(");
+			// 	compileExpressionList();
+			// 	eat(")");
+			// 	vmWriter.writeCall(methodCall, argCount + 1);
+			// }
+			String methodCall = obj + "." + method;
+			eat("(");
+			compileExpressionList();
+			eat(")");
+			//if(subroutineType.equals("method"))
+			if(symbolTable.searchIdentifier(obj) != null){
+				argCount++;
+				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
+				methodCall = symbolTable.getType(obj) + method;
 				vmWriter.writeCall(methodCall, argCount);
 			}
 			else{
-				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj)); //pushing object as the first argument
-				eat("(");
-				compileExpressionList();
-				eat(")");
-				vmWriter.writeCall(methodCall, argCount + 1);
+				vmWriter.writeCall(methodCall, argCount);
 			}	
 		}
 		else if (advanceWithoutIncrementing().equals("~")) {
@@ -543,28 +569,6 @@ public class CompilationEngine extends Tokenizer{
 			}
 		}
 	}
-
-	// void compileExpressionList() {
-	// 	argCount = 0;
-
-	// 	while (2 != 1) {
-	// 		String token = advanceWithoutIncrementing();
-
-	// 		if (! token.equals(")")) {
-	// 			argCount++;
-	// 			//System.out.println("argCount = " +argCount);
-	// 			compileExpression();
-				
-	// 			if (! tokens.get(currentIndex).equals(")")){
-	// 				argCount++;
-	// 				//System.out.println("argCount = " +argCount);
-	// 				eat(",");
-	// 			}
-	// 		}
-	// 		else
-	// 			break;
-	// 	}
-	// }
 
 	void compileExpressionList() {
 		argCount = 0;
