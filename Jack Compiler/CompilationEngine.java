@@ -420,10 +420,8 @@ public class CompilationEngine extends Tokenizer{
 		String method = "";
 
 		if (temp.equals(".")) {
-			//if(! (tokenType(methodCall).equals("keyword") || methodCall.equals(symbolTable.getClassName()))){	
 			if(symbolTable.searchIdentifier(obj) != null){
 				eat(".");
-				//obj = methodCall;
 				method = advanceWithoutEating();
 				methodCall = symbolTable.getType(obj) + "." + method;
 				argCountIncrement++;
@@ -508,25 +506,10 @@ public class CompilationEngine extends Tokenizer{
 			obj = advanceWithoutEating();
 			eat(".");
 			method = advanceWithoutEating();
-			// if(tokenType(obj).equals("keyword") || obj.equals(symbolTable.getClassName())){
-			// 	methodCall = obj + "." + methodCall;
-			// 	eat("(");
-			// 	compileExpressionList();
-			// 	eat(")");
-			// 	vmWriter.writeCall(methodCall, argCount);
-			// }
-			// else{
-			// 	vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj)); //pushing object as the first argument
-			// 	eat("(");
-			// 	compileExpressionList();
-			// 	eat(")");
-			// 	vmWriter.writeCall(methodCall, argCount + 1);
-			// }
 			String methodCall = obj + "." + method;
 			eat("(");
 			compileExpressionList();
 			eat(")");
-			//if(subroutineType.equals("method"))
 			if(symbolTable.searchIdentifier(obj) != null){
 				argCount++;
 				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
@@ -577,7 +560,18 @@ public class CompilationEngine extends Tokenizer{
 				vmWriter.writePush("constant", intVal);
 			}
 			else if(tokenType(tokens.get(currentIndex)).equals("stringConstant")) {
-				
+				//System.out.println(tokens.get(currentIndex));
+				String temp = advanceWithoutEating();
+				String stringToken = temp.substring(1, temp.length()-1);
+				int len = stringToken.length();
+				vmWriter.writePush("constant", len);
+				vmWriter.writeCall("String.new", 1);
+
+				for(int i = 0; i < len; i++){
+					int charVal = stringToken.charAt(i);
+					vmWriter.writePush("constant", charVal);
+					vmWriter.writeCall("String.appendChar", 2);
+				}
 			}
 			else {
 				//writee(tokens.get(currentIndex));

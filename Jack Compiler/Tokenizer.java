@@ -6,9 +6,10 @@ public class Tokenizer {
 
 	Map<String,String> map = new HashMap<String, String>();
 
-	final static String[] keywords = {"class", "constructor", "function", "method", "field", "static", 
-						"var", "int", "char", "boolean", "void", "true","false", "null", 
-						"this", "let", "do", "if", "else", "while", "return", "Output", "Memory", "String", "Math", "Sys", "Screen"};
+	final static String[] keywords = {"class", "constructor", "function", "method", "field", "static", "var",
+									 "int", "char", "boolean", "void", "true","false", "null", "this", "let","do", 
+									 "if", "else", "while", "return", "Output", "Memory", "String", "Math", "Sys",
+									  "Screen", "Keyboard", "Array"};
 
 	final static String[] symbols = {"[", "]", "(", ")", "{", "}", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", ".", "~"};
 	
@@ -101,24 +102,6 @@ public class Tokenizer {
 
 		return false;
 	}
-
-	// boolean isStartingComment(String str) {
-	// 	String trimmedStr = str.trim();
-	// 	char char1 = trimmedStr.charAt(0);
-	// 	char /*char1=null,*/ char2;
-		
-	// 	try {
-	// 		char1 = trimmedStr.charAt(0);
-	// 		char2 = trimmedStr.charAt(1);
-	// 	}catch (StringIndexOutOfBoundsException s) {
-	// 		char2 = ' ';
-	// 	}
-
-	// 	if (char1 == '/' || char1 == '*' || (char1 == ' ' && char2 == '*'))
-	// 		return true;
-
-	// 	return false;
-	// }
 
 	boolean isStartingComment(String str) {
 		String trimmedStr = str.trim();
