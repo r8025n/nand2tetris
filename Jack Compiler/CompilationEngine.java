@@ -263,11 +263,22 @@ public class CompilationEngine extends Tokenizer{
 			vmWriter.writeCall("Memory.alloc", 1);
 			vmWriter.writePop("pointer", 0);
 		}
+
+		if(subroutineType.equals("method")) {
+			vmWriter.writePush("argument", 0);
+			vmWriter.writePop("pointer", 0);
+		}
+
 		toggleState();
 		compileStatements();
 		eat("}");
+
 		if(isTypeVoid)
 			vmWriter.writePush("constant", 0);
+
+		if(subroutineType.equals("constructor")) {
+			vmWriter.writePush("pointer", 0);
+		}
 
 		vmWriter.writeReturn();
 	}
@@ -404,7 +415,7 @@ public class CompilationEngine extends Tokenizer{
 		int argCountIncrement = 0;
 		eat("do");
 		String obj = advanceWithoutEating();
-		String methodCall = obj;
+		String methodCall = "";
 		String temp = advanceWithoutIncrementing();
 		String method = "";
 
@@ -423,6 +434,11 @@ public class CompilationEngine extends Tokenizer{
 				eat(".");
 				methodCall = obj + "." + advanceWithoutEating();
 			}
+		}
+		else{
+			argCountIncrement++;
+			methodCall = symbolTable.getClassName() + "." + obj;
+			vmWriter.writePush("pointer", 0);
 		}
 		eat("(");
 		compileExpressionList();
@@ -564,7 +580,7 @@ public class CompilationEngine extends Tokenizer{
 				
 			}
 			else {
-				writee(tokens.get(currentIndex));
+				//writee(tokens.get(currentIndex));
 				currentIndex++;
 			}
 		}
