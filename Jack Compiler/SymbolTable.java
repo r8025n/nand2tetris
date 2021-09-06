@@ -3,7 +3,7 @@ import java.util.HashMap;
 public class SymbolTable {
 
 	private int fieldIndex = 0;
-	private int staticIndex = 0;
+	private static int staticIndex = 0;
 	private int argumentIndex = 0;
 	private int localIndex = 0;
 	private String className = "";
@@ -27,7 +27,8 @@ public class SymbolTable {
 		subroutineLevelMap.clear();
 		argumentIndex = 0;
 		localIndex = 0;
-		if(subroutineType == "method")
+
+		if(subroutineType.equals("method"))
 			defineIdentifier("sub", "this", className, "argument");
 
 	}

@@ -76,56 +76,6 @@ public class CompilationEngine extends Tokenizer{
 		}
 	}
 
-	void writee(String s) {
-		String type = tokenType(s);
-		String stringToWrite = "";
-		
-		if (type.equals("stringConstant")) {
-			String temp = "";
-			
-			for (int k = 1; k < s.length() - 1; k++){
-				temp += s.charAt(k);
-			}
-			stringToWrite = "<" + type + ">" + temp + "</" + type + ">\n";
-		}
-		else if(type.equals("identifier") && (level == "class" || level == "sub")) {
-			// try {
-			// 	String k = symbolTable.getKind(s);
-			// 	String t = symbolTable.getType(s);
-			// 	int in = symbolTable.getIndex(s);
-			// 	stringToWrite = "<" + state + "-" + k + "-" + t + "-" + in + ">" + s + "</" + state + "-" + k + "-" + t + "-" +  in + ">\n";
-			// } catch (NullPointerException e) {
-			// 	if (s.equals(symbolTable.getClassName()))
-			// 		stringToWrite = "<" + "className" + ">" + s + "</" + "className" +">\n";
-			// 	else	
-			// 		stringToWrite = "<" + "methodCall" + ">" + s + "</" + "methodCall" +">\n";				
-			// }
-		}
-		else if (s.equals("<")) {
-			stringToWrite = "<" + type + ">" + "&lt;" + "</" + type + ">\n";
-		}
-		else if (s.equals(">")) {
-			stringToWrite = "<" + type + ">" + "&gt;" + "</" + type + ">\n";
-		}
-		else if (s.equals("\"")) {
-			stringToWrite = "<"+type+">"+"&quot;"+"</"+type+">\n";
-		}
-		else if (s.equals("&")) {
-			stringToWrite = "<" + type + ">" + "&amp;" + "</" + type + ">\n";
-		}
-		else {
-			stringToWrite = "<" + type + ">" + s + "</" + type + ">\n";
-		}
-
-		// try{
-		// 	out.write(stringToWrite);
-		// } catch (IOException e) {
-		// 	System.out.println("Couldn't write in file");
-		// }	
-	}
-
-
-
 	void eat(String s) {
 		String token = advanceWithoutEating();
 		
@@ -201,8 +151,6 @@ public class CompilationEngine extends Tokenizer{
 				break;
 			if(! varName.equals(","))
 				symbolTable.defineIdentifier("class", varName, type, kind);
-
-			//writee(varName);
 		}
 	}
 
@@ -245,7 +193,6 @@ public class CompilationEngine extends Tokenizer{
 			String token = advanceWithoutIncrementing();
 			//System.out.println(token);
 			symbolTable.defineIdentifier(level, token, type, kind);
-
 			eat(token);
 		}
 
@@ -493,7 +440,7 @@ public class CompilationEngine extends Tokenizer{
 					compileTerm();
 				}
 				else{
-					writee(tempp);
+					//writee(tempp);
 					currentIndex++;
 				}
 			}
@@ -517,7 +464,7 @@ public class CompilationEngine extends Tokenizer{
 			if(symbolTable.searchIdentifier(obj) != null){
 				argCount++;
 				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
-				methodCall = symbolTable.getType(obj) + method;
+				methodCall = symbolTable.getType(obj) + "." + method;
 				vmWriter.writeCall(methodCall, argCount);
 			}
 			else{
@@ -592,12 +539,18 @@ public class CompilationEngine extends Tokenizer{
 	void compileExpressionList() {
 		argCount = 0;
 		String token = advanceWithoutIncrementing();
+		if(token.equals("this"))
+			vmWriter.writePush("pointer", 0);
 
 		if(!token.equals(")")){
 			argCount++;
 			compileExpression();
 			while(2 != 1){
 				token = advanceWithoutIncrementing();
+
+				if(token.equals("this"))
+					vmWriter.writePush("pointer", 0);
+
 				if(!token.equals(")")){
 					eat(",");
 					argCount++;
