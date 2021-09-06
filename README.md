@@ -27,7 +27,7 @@
 <p>&emsp; A syntax analyzer which tokenize all the meaningful JACK programming syntax form any code written in JACK, and assign them to their specific types which are variables, datatype, integer, string, operator, array, expression, term etc. This is done as the first part of compilation process.</p>
 
 <h2>5. Compiler (written in JAVA):</h2>
-<p>&emsp; In this part had to build the full functional JACk language compiler based on the Syantax Analyzer that was built as the previous project. This compiler can now tokenize any JACK program and compile them into the Virtual Machine specific VM language.</p>
+<p>&emsp; In this part had to build the full functional JACK language compiler based on the Syantax Analyzer that was built as the previous project. This compiler can now tokenize any JACK program and compile them into the Virtual Machine specific VM language.</p>
 
 <h2>6. Operating System (yet to complete):</h2>
 <p></p>
