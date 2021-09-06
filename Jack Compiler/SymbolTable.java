@@ -35,7 +35,6 @@ public class SymbolTable {
 
 	void defineIdentifier(String level, String name, String type, String kind) {
 		Identifier newIdentifier = new Identifier(type, kind, selectIndex(kind));
-		//System.out.println(selectIndex(type));
 
 		if (level.equals("class"))
 			classLevelMap.put(name, newIdentifier);

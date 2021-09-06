@@ -79,15 +79,10 @@ public class CompilationEngine extends Tokenizer{
 	void eat(String s) {
 		String token = advanceWithoutEating();
 		
-		if (tokenType(s).equals("keyword") || tokenType(s).equals("symbol")){
-			//writee(s);
-		}
-		else if (tokenType(s).equals(tokenType(token))) {
-			//writee(token);
-		}
-		else {
-			System.out.println(token+"->"+"Your code has error");
-		}
+		if (! (tokenType(s).equals("keyword") || tokenType(s).equals("symbol"))){
+			if(! tokenType(s).equals(tokenType(token)))
+				System.out.println("Error in your Code...Please Recheck");
+		}		
 	}
 
 	String advanceWithoutEating() {
@@ -169,10 +164,9 @@ public class CompilationEngine extends Tokenizer{
 		eat("(");
 		level = "sub";
 
-		if(! advanceWithoutIncrementing().equals(")")){
-			//System.out.println("debug");
+		if(! advanceWithoutIncrementing().equals(")"))
 			compileParameterList();
-		}
+
 		eat(")");
 		compileSubroutineBody();
 	}
@@ -189,9 +183,7 @@ public class CompilationEngine extends Tokenizer{
 				eat(",");
 			type = advanceWithoutIncrementing();
 			eat(type);
-			//System.out.println(type);
 			String token = advanceWithoutIncrementing();
-			//System.out.println(token);
 			symbolTable.defineIdentifier(level, token, type, kind);
 			eat(token);
 		}
@@ -223,15 +215,15 @@ public class CompilationEngine extends Tokenizer{
 		if(isTypeVoid)
 			vmWriter.writePush("constant", 0);
 
-		if(subroutineType.equals("constructor")) {
+		if(subroutineType.equals("constructor"))
 			vmWriter.writePush("pointer", 0);
-		}
 
 		vmWriter.writeReturn();
 	}
 
 	void compileVarDec() {
 		localCount = 0;
+		
 		while (2 > 1) {
 			String token = advanceWithoutIncrementing();
 			
@@ -250,7 +242,6 @@ public class CompilationEngine extends Tokenizer{
 		eat(type);
 		String name = advanceWithoutIncrementing();
 		symbolTable.defineIdentifier(level, name, type, kind);
-		//System.out.println("name =" + name + " - " + symbolTable.getKind(name) +" - "+symbolTable.getType(name));
 		localCount++;
 		eat(name);
 
@@ -258,9 +249,7 @@ public class CompilationEngine extends Tokenizer{
 			eat(",");
 			name = advanceWithoutEating();
 			symbolTable.defineIdentifier(level, name, type, kind);
-			//System.out.println("name =" + name + " - " + symbolTable.getKind(name) +" - "+symbolTable.getType(name));
 			localCount++;
-			//eat(name);
 		}
 		eat(";");
 	}
@@ -295,12 +284,11 @@ public class CompilationEngine extends Tokenizer{
 			eat("[");
 			compileExpression();
 			eat("]");
-			//vmWriter.writePush("temp", 0);
 			vmWriter.writeArithmatic("+"); //adds calculated expression with array base
 		}
 		eat("=");
 		compileExpression();
-		//System.out.println("debug");
+
 		if (isLeftSideArray) {
 			vmWriter.writePop("temp", 0);
 			vmWriter.writePop("pointer", 1); //store the summed value to THAT
@@ -372,7 +360,6 @@ public class CompilationEngine extends Tokenizer{
 				method = advanceWithoutEating();
 				methodCall = symbolTable.getType(obj) + "." + method;
 				argCountIncrement++;
-				//System.out.println("obay di dhuki laisi "+ obj);
 				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
 			}
 			else{
@@ -412,13 +399,7 @@ public class CompilationEngine extends Tokenizer{
 				eat(")");
 			}
 			else if (tokenType(tempp).equals("identifier") && tokens.get(currentIndex+1).equals("[")) {
-				// eat("[");
-				// compileExpression();
-				// eat("]");
 				compileTerm();
-				// vmWriter.writeArithmatic("+");
-				// vmWriter.writePop("pointer", 1);
-				// vmWriter.writePush("that", 0);
 			}
 			else if ((tempp.equals("~") || (tempp.equals("-")) && (tokens.get(currentIndex-1).equals("(") || tokens.get(currentIndex-1).equals(",")))) {
 				compileTerm();
@@ -436,13 +417,7 @@ public class CompilationEngine extends Tokenizer{
 				vmWriter.writeLogic(op);
 			}
 			else {
-				if (tokenType(tempp).equals("identifier") || tokenType(tempp).equals("integerConstant") || tokenType(tempp).equals("stringConstant") || tokenType(tempp).equals("keyword")){
-					compileTerm();
-				}
-				else{
-					//writee(tempp);
-					currentIndex++;
-				}
+				compileTerm();
 			}
 			tempp = advanceWithoutIncrementing();
 		}
@@ -450,7 +425,6 @@ public class CompilationEngine extends Tokenizer{
 
 	void compileTerm() {
 		int k = currentIndex+1;
-		//argCount = 0;
 		String method = "", obj = "";
 
 		if (tokens.get(k).equals(".")) {
@@ -461,6 +435,7 @@ public class CompilationEngine extends Tokenizer{
 			eat("(");
 			compileExpressionList();
 			eat(")");
+
 			if(symbolTable.searchIdentifier(obj) != null){
 				argCount++;
 				vmWriter.writePush(symbolTable.getKind(obj), symbolTable.getIndex(obj));
@@ -499,6 +474,7 @@ public class CompilationEngine extends Tokenizer{
 			if (tokenType(tokens.get(currentIndex)).equals("identifier")) {
 				String var = advanceWithoutEating();
 				vmWriter.writePush(symbolTable.getKind(var), symbolTable.getIndex(var));
+				
 				if (tokens.get(currentIndex).equals("[")) {
 					eat("[");
 					compileExpression();
@@ -509,16 +485,12 @@ public class CompilationEngine extends Tokenizer{
 				}
 			}
 			else if(tokenType(tokens.get(currentIndex)).equals("integerConstant")){
-				//System.out.println(methodCall);
 				int intVal = Integer.parseInt(advanceWithoutEating());
 				vmWriter.writePush("constant", intVal);
 			}
 			else if(tokenType(tokens.get(currentIndex)).equals("stringConstant")) {
-				//System.out.println(tokens.get(currentIndex));
 				String temp = advanceWithoutEating();
-				//System.out.println(temp);
 				String stringToken = temp.substring(1, temp.length()-1);
-				//System.out.println(stringToken);
 				int len = stringToken.length();
 				vmWriter.writePush("constant", len);
 				vmWriter.writeCall("String.new", 1);
@@ -530,7 +502,6 @@ public class CompilationEngine extends Tokenizer{
 				}
 			}
 			else {
-				//writee(tokens.get(currentIndex));
 				currentIndex++;
 			}
 		}
