@@ -91,12 +91,7 @@ public class CompilationEngine extends Tokenizer{
 		else {
 			stringToWrite = "<" + type + ">" + s + "</" + type + ">\n";
 		}
-
-		try{
-			out.write(stringToWrite);
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}	
+		writeMisc(stringToWrite);	
 	}
 
 
@@ -123,11 +118,7 @@ public class CompilationEngine extends Tokenizer{
 
 
 	void compileClass() {
-		try{
-			out.write("<class>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("class");
 		eat("class");
 		eat("abc");
 		eat("{");
@@ -143,12 +134,7 @@ public class CompilationEngine extends Tokenizer{
 		}
 		
 		eat("}");
-		
-		try{
-			out.write("</class>\n");
-		} catch (IOException e){
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("class");
 	}
 
 	void compileClassVarDec() {
@@ -164,11 +150,7 @@ public class CompilationEngine extends Tokenizer{
 	} 
 
 	void singleLineClassVar() {
-		try{
-			out.write("<classVarDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("classVarDec");
 		String token = tokens.get(currentIndex);
 
 		if(token.equals("static"))
@@ -185,20 +167,11 @@ public class CompilationEngine extends Tokenizer{
 			currentIndex++;
 		}
 		eat(";");
-
-		try{
-			out.write("</classVarDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("classVarDec");
 	}
 
 	void compileSubroutineDec() {
-		try{
-			out.write("<subroutineDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("subroutineDec");
 		String token = null;
 		token = tokens.get(currentIndex);
 		currentIndex++;
@@ -213,20 +186,11 @@ public class CompilationEngine extends Tokenizer{
 		compileParameterList();
 		eat(")");
 		compileSubroutineBody();
-		
-		try{
-			out.write("</subroutineDec>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("subroutineDec");
 	}
 
 	void compileParameterList() {
-		try{
-			out.write("<parameterList>\n");
-		}catch(IOException e){
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("parameterList");
 
 		while (2 > 1) {
 			String token = tokens.get(currentIndex);
@@ -237,30 +201,16 @@ public class CompilationEngine extends Tokenizer{
 				writee(token);
 			currentIndex++;
 		}
-		
-		try{
-			out.write("</parameterList>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("parameterList");
 	}
 
 	void compileSubroutineBody() {
-		try{
-			out.write("<subroutineBody>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("subroutineBody");
 		eat("{");
 		compileVarDec();
 		compileStatements();
 		eat("}");
-		
-		try{
-			out.write("</subroutineBody>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("subroutineBody");
 	}
 
 	void compileVarDec() {
@@ -275,11 +225,7 @@ public class CompilationEngine extends Tokenizer{
 	}
 
 	void singleLineVarDec() {
-		try{
-			out.write("<varDec>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("varDec");
 		eat("var");
 		writee(tokens.get(currentIndex));
 		currentIndex++;
@@ -292,20 +238,11 @@ public class CompilationEngine extends Tokenizer{
 			token = tokens.get(currentIndex);
 		}
 		eat(";");
-		
-		try{
-			out.write("</varDec>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("varDec");
 	}
 
 	void compileStatements() {
-		try{
-			out.write("<statements>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("statements");
 		while (2 != 1){
 			String token=tokens.get(currentIndex);
 
@@ -322,20 +259,11 @@ public class CompilationEngine extends Tokenizer{
 			else
 				break;
 		}
-		
-		try{
-			out.write("</statements>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("statements");
 	}
 
 	void compileLet() {
-		try{
-			out.write("<letStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("letStatement");
 		eat("let");
 		eat("abc");
 		
@@ -347,19 +275,11 @@ public class CompilationEngine extends Tokenizer{
 		eat("=");
 		compileExpression();
 		eat(";");
-		try{
-			out.write("</letStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("letStatement");
 	}
 
 	void compileIf() {
-		try{
-			out.write("<ifStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("ifStatement");
 		eat("if");
 		eat("(");
 		compileExpression();
@@ -374,20 +294,11 @@ public class CompilationEngine extends Tokenizer{
 			compileStatements();
 			eat("}");
 		}
-		
-		try{
-			out.write("</ifStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("ifStatement");
 	}
 
 	void compileWhile() {
-		try{
-			out.write("<whileStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("whileStatement");
 		eat("while");
 		eat("(");
 		compileExpression();
@@ -395,20 +306,11 @@ public class CompilationEngine extends Tokenizer{
 		eat("{");
 		compileStatements();
 		eat("}");
-		
-		try{
-			out.write("</whileStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("whileStatement");
 	}
 
 	void compileDo() {
-		try{
-			out.write("<doStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("doStatement");
 		eat("do");
 		eat("abc");
 		String temp=tokens.get(currentIndex);
@@ -417,64 +319,35 @@ public class CompilationEngine extends Tokenizer{
 			eat(".");
 			eat("abc");
 		}
-
 		eat("(");
 		compileExpressionList();
 		eat(")");
 		eat(";");
-		
-		try{
-			out.write("</doStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("doStatement");
 	}
 
 	void compileReturn() {
-		try{
-			out.write("<returnStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("returnStatement");
 		eat("return");
 		
 		if (! tokens.get(currentIndex).equals(";"))
 			compileExpression();
 		eat(";");
-		
-		try{
-			out.write("</returnStatement>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("returnStatement");
 	}
 
 	void compileExpression() {
-		try{
-			out.write("<expression>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("expression");
 
 		String tempp = tokens.get(currentIndex);
 
 		while ( ! (tempp.equals(";") || tempp.equals("]") || tempp.equals(")") || tempp.equals("}") || tempp.equals(",") )) {
 			if (tempp.equals("(")) {
-				try{
-					out.write("<term>\n");
-				} catch (IOException e) {
-					System.out.println("Couldn't write in file");
-				}
-
+				writeOpeningTag("term");
 				eat("(");
 				compileExpression();
 				eat(")");
-
-				try{
-					out.write("</term>\n");
-				} catch (IOException e) {
-					System.out.println("Couldn't write in file");
-				}
+				writeClosingTag("term");
 			}
 			else if (tempp.equals("[")) {
 				eat("[");
@@ -494,21 +367,12 @@ public class CompilationEngine extends Tokenizer{
 				}
 			}
 			tempp = tokens.get(currentIndex);
-
 		}
-		try{
-			out.write("</expression>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("expression");
 	}
 
 	void compileTerm() {
-		try{
-			out.write("<term>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("term");
 		int k = currentIndex+1;
 		
 		if (tokens.get(k).equals(".")) {
@@ -547,19 +411,11 @@ public class CompilationEngine extends Tokenizer{
 				currentIndex++;
 			}
 		}
-		try{
-			out.write("</term>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeClosingTag("term");
 	}
 
 	void compileExpressionList() {
-		try{
-			out.write("<expressionList>\n");
-		} catch (IOException e) {
-			System.out.println("Couldn't write in file");
-		}
+		writeOpeningTag("expressionList");
 
 		while (2 != 1) {
 			String token=tokens.get(currentIndex);
@@ -573,9 +429,29 @@ public class CompilationEngine extends Tokenizer{
 			else
 				break;
 		}
+		writeClosingTag("expressionList");
+	}
+
+	void writeOpeningTag(String classifier) {
 		try{
-			out.write("</expressionList>\n");
-		} catch (IOException e) {
+			out.write("<"+ classifier + ">\n");
+		}catch(IOException e) {
+			System.out.println("Couldn't write in file");
+		}
+	}
+
+	void writeClosingTag(String classifier) {
+		try{
+			out.write("</"+ classifier + ">\n");
+		}catch(IOException e) {
+			System.out.println("Couldn't write in file");
+		}
+	}
+
+	void writeMisc(String str) {
+		try{
+			out.write(str);
+		}catch(IOException e) {
 			System.out.println("Couldn't write in file");
 		}
 	}
