@@ -13,21 +13,37 @@
 <p>Second Part Course Link: <a href = "https://www.coursera.org/learn/nand2tetris2"> From Nand to Tetris - Part II<a></p>
  
 <h1>What I have done so far:</h1>
+
+<h2>Week 1:</h2>
+<p>&emsp; Implemented elementary logic gates in HDL along with Multiplexer and Demultiplexer.</p>
+
+<h2>Week 2:</h2>
+<p>&emsp; Implemented a HalfAdder, a FullAdder and the ALU.</p>
+
+<h2>Week 3:</h2>
+<p>&emsp; Implemented sequential logic circuitry using D Flip-Flops. Built Registers, a Counter and RAM chips.</p>
+
+<h2>Week 4:</h2>
+<p>&emsp; Written a few programs in the HACK assembly language.</p>
+
+<h2>Week 5:</h2>
+<p>&emsp; Implemented the CPU and the complete Memory chip. Assembled the complete HACK computer architecture together. The HACK computer is now able to execute instructions written in the HACK assembly language.</p>
+
 	
-<h2>1. Assembler (written in C):</h2> 
-<p>&emsp; An assembler to convert project specific HACK assembly language to binary.</p>
+<h2>Week 6- Assembler (written in C):</h2> 
+<p>&emsp; Developed an assembler to convert project specific HACK assembly language to binary.</p>
 
-<h2>2. VMTranslator (written in JAVA):</h2>
-<p>&emsp; A translator to translate stack based virtual machine language to assembly language.</p>
+<h2>Week 7- VMTranslator (written in JAVA):</h2>
+<p>&emsp; Developed a translator to translate stack based virtual machine language to assembly language.</p>
 
-<h2>3. ShooterJack (written in JACK):</h2>
-<p>&emsp; A very simple shooting game where a gun shoots a moving object written in course specific object oriented programming language JACK. Its purpose was to get familiar with JACK proogramming language.</p>
+<h2>Week 8- ShooterJack (written in JACK):</h2>
+<p>&emsp; Developed very simple shooting game where a gun shoots a moving object written in course specific object oriented programming language JACK. Its purpose was to get familiar with JACK proogramming language.</p>
 
-<h2>4. Syntax Analyzer (Written in JAVA):</h2>
-<p>&emsp; A syntax analyzer which tokenize all the meaningful JACK programming syntax form any code written in JACK, and assign them to their specific types which are variables, datatype, integer, string, operator, array, expression, term etc. This is done as the first part of compilation process.</p>
+<h2>Week 9- Syntax Analyzer (Written in JAVA):</h2>
+<p>&emsp; Developed a syntax analyzer which tokenize all the meaningful JACK programming syntax form any code written in JACK, and assign them to their specific types which are variables, datatype, integer, string, operator, array, expression, term etc. This is done as the first part of compilation process.</p>
 
-<h2>5. Compiler (written in JAVA):</h2>
-<p>&emsp; In this part had to build the full functional JACK language compiler based on the Syantax Analyzer that was built as the previous project. This compiler can now tokenize any JACK program and compile them into the Virtual Machine specific VM language.</p>
+<h2>Week 10- Compiler (written in JAVA):</h2>
+<p>&emsp; Developed the full functional JACK language compiler based on the Syantax Analyzer that was built as the previous project. This compiler can now tokenize any JACK program and compile them into the Virtual Machine specific VM language.</p>
 
-<h2>6. Operating System (yet to complete):</h2>
+<h2>Week 11- Operating System (yet to complete):</h2>
 <p></p>
