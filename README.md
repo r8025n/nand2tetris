@@ -3,7 +3,7 @@
 <p>This repo contains my own implementation of project based two part online course Nand to Tetris. The purpose of this course is to get familiar with basic computer architecture and working process of overlying system level softwares like compiler and OS in a comparatively easier project based approach.</p>
 
 <h1>First Part:</h1>
-<p>In the first part it is mostly digital logic design. By designing logic gates using course specific hardware definition language,had to make an basic logic gates, counter,adder, mux demux, ram etc. and finally a simpler arithmatic logic unit which is capable of add, subtraction,reset, select etc. operation on 16 bit integer values only. As the final project it was required to build an assembler for the course specific assembly language. This course gives a good understandin of basic computer architecture.</p>
+<p>In the first part it is mostly digital logic design. By designing elementary logic gates using course specific hardware definition language,had to make intermediate digital circuits and counter,adder, mux demux, ram etc. and finally a simpler arithmatic logic unit which is capable of add, subtraction,reset, select etc. operation on 16 bit integer values only. As the final project it was required to build an assembler for the course specific assembly language. This course gives a good understandin of basic computer architecture.</p>
 
 <p>First Part Course Link: <a href = "https://www.coursera.org/learn/build-a-computer"> From Nand to Tetris - Part I<a></p>
  
