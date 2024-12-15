@@ -12,7 +12,7 @@
 
 <p>Second Part Course Link: <a href = "https://www.coursera.org/learn/nand2tetris2"> From Nand to Tetris - Part II<a></p>
  
-<h1>What I have done so far:</h1>
+<h1>Project Summary:</h1>
 
 <h2>Week 1:</h2>
 <p>&emsp; Implemented elementary logic gates in HDL along with Multiplexer and Demultiplexer.</p>
@@ -45,5 +45,3 @@
 <h2>Week 10- Compiler (written in JAVA):</h2>
 <p>&emsp; Developed the full functional JACK language compiler based on the Syantax Analyzer that was built as the previous project. This compiler can now tokenize any JACK program and compile them into the Virtual Machine specific VM language.</p>
 
-<h2>Week 11- Operating System (yet to complete):</h2>
-<p></p>
